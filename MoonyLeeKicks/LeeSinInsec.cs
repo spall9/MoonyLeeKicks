@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using EloBuddy;
 using EloBuddy.SDK;
@@ -9,6 +10,7 @@ using EloBuddy.SDK.Menu;
 using EloBuddy.SDK.Menu.Values;
 using EloBuddy.SDK.Rendering;
 using SharpDX;
+using Color = System.Drawing.Color;
 
 namespace MoonyLeeKicks
 {
@@ -48,18 +50,24 @@ namespace MoonyLeeKicks
             bool cantInsec = !ally.IsValid || !TargetSelector.SelectedTarget.IsValid || !config["_insecKey"].Cast<KeyBind>().CurrentValue;
             if (cantInsec)
                 return;
+            bool canInsec = HasResourcesToInsec();
 
-            float minMana = !SpellManager.FlashReady
-                    ? me.Spellbook.GetSpell(SpellSlot.Q).SData.Mana +
-                      me.Spellbook.GetSpell(SpellSlot.W).SData.Mana
-                    : me.Spellbook.GetSpell(SpellSlot.Q).SData.Mana;
-
-            bool canJump = SpellManager.CanCastW1 || SpellManager.FlashReady || GetAllyAsWard() != null;
-
-            if (canJump && SpellManager.R.IsReady() && me.Mana >= minMana)
+            if (canInsec)
             {
                 CheckInsec();
             }
+        }
+
+        private bool HasResourcesToInsec()
+        {
+            float minMana = !SpellManager.FlashReady
+                                ? me.Spellbook.GetSpell(SpellSlot.Q).SData.Mana +
+                                  me.Spellbook.GetSpell(SpellSlot.W).SData.Mana
+                                : me.Spellbook.GetSpell(SpellSlot.Q).SData.Mana;
+
+            bool canJump = SpellManager.CanCastW1 || SpellManager.FlashReady || GetAllyAsWard() != null;
+            bool canInsec = canJump && SpellManager.R.IsReady() && me.Mana >= minMana;
+            return canInsec;
         }
 
         Obj_AI_Base GetAllyAsWard()
@@ -135,14 +143,52 @@ namespace MoonyLeeKicks
 
         private void DrawingOnOnDraw(EventArgs args)
         {
-            try
+            if (ally != null && ally.IsValid)
+                new Circle(new ColorBGRA(new Vector4(255, 255, 255, 1)), 100, 2).Draw(ally.Position);
+
+            if (ally == null || TargetSelector.SelectedTarget == null)
             {
-                if (ally.IsValid && ally != null)
-                    new Circle(new ColorBGRA(new Vector4(255, 255, 255, 1)), 100, 2).Draw(ally.Position);
+                if (config["_insecKey"].Cast<KeyBind>().CurrentValue)
+                    DrawFailInfo();
+                return;
             }
-            catch
+
+            bool couldInsec = TargetSelector.SelectedTarget.IsValid && ally.IsValid && HasResourcesToInsec();
+            if (couldInsec)
             {
+                var startpos = TargetSelector.SelectedTarget.Position.To2D();
+                var endpos = ally.Position.To2D();
+
+                Vector2[] arrows = {
+                    endpos + (startpos - endpos).Normalized().Rotated(45 * (float)Math.PI / 180) *
+                        TargetSelector.SelectedTarget.BoundingRadius,
+                    endpos + (startpos - endpos).Normalized().Rotated(-45 * (float)Math.PI / 180) *
+                        TargetSelector.SelectedTarget.BoundingRadius
+                };
+                var white = Color.FromArgb(255, 255, 255, 255);
+
+                Drawing.DrawLine(startpos.To3D().WorldToScreen(), endpos.To3D().WorldToScreen(), 5, white);
+                Drawing.DrawLine(endpos.To3D().WorldToScreen(), arrows[0].To3D().WorldToScreen(), 5, white);
+                Drawing.DrawLine(endpos.To3D().WorldToScreen(), arrows[1].To3D().WorldToScreen(), 5, white);
             }
+            else if (config["_insecKey"].Cast<KeyBind>().CurrentValue)
+                DrawFailInfo();
+        }
+
+        private void DrawFailInfo()
+        {
+            Text StatusText = new Text("", new Font("Euphemia", 10F, FontStyle.Bold)) {Color = Color.Red};
+
+            if (TargetSelector.SelectedTarget == null || !TargetSelector.SelectedTarget.IsValid)
+                StatusText.TextValue = "No Insec Target Selected";
+            else if (ally == null || !ally.IsValid)
+                StatusText.TextValue = "Invalid Insec Ally";
+            else if (!HasResourcesToInsec())
+                StatusText.TextValue = "Not enough Spells for Insec";
+
+            StatusText.Position = Player.Instance.Position.WorldToScreen() - new Vector2((float)StatusText.Bounding.Width / 2, -50);
+
+            StatusText.Draw();
         }
 
         private static void Game_OnWndProc(WndEventArgs args)
@@ -260,7 +306,6 @@ namespace MoonyLeeKicks
 
         private void CheckInsec()
         {
-
             if (!me.Spellbook.GetSpell(SpellSlot.Q).Name.Contains("One"))
                 SpellManager.Q2.Cast();
             Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
