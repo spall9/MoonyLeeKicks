@@ -156,12 +156,19 @@ namespace MoonyLeeKicks
 
         private static void Flee()
         {
-            Vector2 jumpPos = me.Position.To2D() +
-                                (Game.CursorPos.To2D() - me.Position.To2D()).Normalized()*WardManager.WardRange;
-
-            if (WardManager.CanCastWard && me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana)
+            try
             {
-                WardManager.CastWardTo(jumpPos.To3D());
+                Vector2 jumpPos = me.Position.To2D() +
+                                (Game.CursorPos.To2D() - me.Position.To2D()).Normalized() * WardManager.WardRange;
+
+                if (WardManager.CanCastWard && me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana)
+                {
+                    WardManager.CastWardTo(jumpPos.To3D());
+                }
+            }
+            catch (Exception ex )
+            {
+                //Chat.Print(ex.Message);
             }
         }
 
