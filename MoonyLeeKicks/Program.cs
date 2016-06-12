@@ -159,25 +159,7 @@ namespace MoonyLeeKicks
             Vector2 jumpPos = me.Position.To2D() +
                                 (Game.CursorPos.To2D() - me.Position.To2D()).Normalized()*WardManager.WardRange;
 
-            var allyobj =
-                ObjectManager.Get<Obj_AI_Base>()
-                    .Where(x => x.IsValid && (x is AIHeroClient || x is Obj_AI_Minion))
-                    .OrderBy(x => x.Distance(jumpPos))
-                    .FirstOrDefault();
-
-            if (allyobj != null)
-            {
-                if (allyobj.Distance(jumpPos) <= 80)
-                {
-                    SpellManager.W1.Cast(allyobj);
-                    Core.DelayAction(() => SpellManager.W2.Cast(), 1000);
-                }
-                else if (WardManager.CanCastWard && me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana)
-                {
-                    WardManager.CastWardTo(jumpPos.To3D());
-                }
-            }
-            else if (WardManager.CanCastWard && me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana)
+            if (WardManager.CanCastWard && me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana)
             {
                 WardManager.CastWardTo(jumpPos.To3D());
             }
