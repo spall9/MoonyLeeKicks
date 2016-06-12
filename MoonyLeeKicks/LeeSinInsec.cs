@@ -177,18 +177,23 @@ namespace MoonyLeeKicks
 
         private void DrawFailInfo()
         {
-            Text StatusText = new Text("", new Font("Euphemia", 10F, FontStyle.Bold)) {Color = Color.Red};
+            try
+            {
+                Text StatusText = new Text("", new Font("Euphemia", 10F, FontStyle.Bold)) {Color = Color.Red};
 
-            if (TargetSelector.SelectedTarget == null || !TargetSelector.SelectedTarget.IsValid)
-                StatusText.TextValue = "No Insec Target Selected";
-            else if (ally == null || !ally.IsValid)
-                StatusText.TextValue = "Invalid Insec Ally";
-            else if (!HasResourcesToInsec())
-                StatusText.TextValue = "Not enough Spells for Insec";
+                if (TargetSelector.SelectedTarget == null || !TargetSelector.SelectedTarget.IsValid)
+                    StatusText.TextValue = "No Insec Target Selected";
+                else if (ally == null || !ally.IsValid)
+                    StatusText.TextValue = "Invalid Insec Ally";
+                else if (!HasResourcesToInsec())
+                    StatusText.TextValue = "Not enough Spells for Insec";
 
-            StatusText.Position = Player.Instance.Position.WorldToScreen() - new Vector2((float)StatusText.Bounding.Width / 2, -50);
+                StatusText.Position = Player.Instance.Position.WorldToScreen() -
+                                      new Vector2((float) StatusText.Bounding.Width/2, -50);
 
-            StatusText.Draw();
+                StatusText.Draw();
+            }
+            catch { }
         }
 
         private static void Game_OnWndProc(WndEventArgs args)
