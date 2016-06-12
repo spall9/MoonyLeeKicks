@@ -172,8 +172,12 @@ namespace MoonyLeeKicks
                     SpellManager.W1.Cast(allyobj);
                     Core.DelayAction(() => SpellManager.W2.Cast(), 1000);
                 }
+                else if (WardManager.CanCastWard && me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana)
+                {
+                    WardManager.CastWardTo(jumpPos.To3D());
+                }
             }
-            else if (WardManager.CanCastWard && me.Mana >= me.Spellbook.GetSpell(SpellManager.W1.Slot).SData.Mana)
+            else if (WardManager.CanCastWard && me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana)
             {
                 WardManager.CastWardTo(jumpPos.To3D());
             }
