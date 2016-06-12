@@ -197,47 +197,38 @@ namespace MoonyLeeKicks
 
         private bool CanWardFlashKick(Vector2 wardPlacePos)
         {
-            try
+            var allyJump = GetAllyAsWard();
+            var canWardJump = (WardManager.CanCastWard || allyJump != null) &&
+                                me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana;
+            float maxWardJumpDist = allyJump == null ? WardManager.WardRange : SpellManager.W1.Range;
+
+            var canFlash = SpellManager.FlashReady;
+
+            bool inRange = me.Distance(wardPlacePos) <= SpellManager.Flash.Range + maxWardJumpDist;
+
+
+            bool q1Casted = SpellManager.CanCastQ2 &&
+                            ObjectManager.Get<Obj_AI_Base>()
+                                .Any(x => x.IsEnemy && x.IsValid && x.HasBuff("BlindMonkQOne"));
+            float distQTargetToWardPos =
+                ObjectManager.Get<Obj_AI_Base>().Any(x => x.IsEnemy && x.IsValid && x.HasBuff("BlindMonkQOne"))
+                    ? ObjectManager.Get<Obj_AI_Base>().First(x => x.IsEnemy && x.IsValid && x.HasBuff("BlindMonkQOne")).Distance(wardPlacePos)
+                    : 0;
+            float maxRange = canWardJump ? 600 : 425;
+            if (maxRange > 0 && allyJump != null) maxRange = SpellManager.W1.Range;
+
+            bool dontNeedFlash = q1Casted && distQTargetToWardPos <= maxRange && canWardJump;
+
+            if (inRange && canWardJump && canFlash && !dontNeedFlash)
             {
-                var allyJump = GetAllyAsWard();
-                var canWardJump = (WardManager.CanCastWard || allyJump != null) &&
-                                  me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana;
-                float maxWardJumpDist = allyJump == null ? WardManager.WardRange : SpellManager.W1.Range;
-
-                var canFlash = SpellManager.FlashReady;
-
-                bool inRange = me.Distance(wardPlacePos) <= SpellManager.Flash.Range + maxWardJumpDist;
-
-
-                bool q1Casted = SpellManager.CanCastQ2 &&
-                                ObjectManager.Get<Obj_AI_Base>()
-                                    .Any(x => x.IsEnemy && x.IsValid && x.HasBuff("BlindMonkQOne"));
-                float distQTargetToWardPos =
-                    ObjectManager.Get<Obj_AI_Base>().Any(x => x.IsEnemy && x.IsValid && x.HasBuff("BlindMonkQOne"))
-                        ? EntityManager.Heroes.Enemies.FirstOrDefault(
-                            x => x.IsEnemy && x.IsValid && x.HasBuff("BlindMonkQOne"))
-                            .Distance(wardPlacePos)
-                        : 0;
-                float maxRange = canWardJump ? 600 : 425;
-                if (maxRange > 0 && allyJump != null) maxRange = SpellManager.W1.Range;
-
-                bool dontNeedFlash = q1Casted && distQTargetToWardPos <= maxRange && canWardJump;
-
-                if (inRange && canWardJump && canFlash && !dontNeedFlash)
-                {
-                    if (WardManager.CanCastWard)
-                        WardManager.CastWardTo(wardPlacePos.To3D());
-                    else /*flash -> ally w to reach wardPos*/
-                        SpellManager.Flash.Cast(wardPlacePos.To3D());
-                    return true;
-                }
-
-                return false;
+                if (WardManager.CanCastWard)
+                    WardManager.CastWardTo(wardPlacePos.To3D());
+                else /*flash -> ally w to reach wardPos*/
+                    SpellManager.Flash.Cast(wardPlacePos.To3D());
+                return true;
             }
-            catch
-            {
-                return false;
-            }
+
+            return false;
         }
 
         private bool moonSecActive = false;
