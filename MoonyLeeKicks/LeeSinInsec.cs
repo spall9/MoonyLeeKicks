@@ -26,7 +26,7 @@ namespace MoonyLeeKicks
             config.AddLabel("Kicks to allies | Uses Ward > Flash");
             config.AddSeparator(10);
             config.Add("wardDistanceToTarget",
-                new Slider("Ward distance to enemy", 300, 50, (int) SpellManager.R.Range - 1));
+                new Slider("Ward distance to enemy", 230, 50, 300));
             config.Add("attendDashes", new CheckBox("Attend dashes"));
 
             config.Add("_insecKey", new KeyBind("LeeSinInsec Key", false, KeyBind.BindTypes.HoldActive));
