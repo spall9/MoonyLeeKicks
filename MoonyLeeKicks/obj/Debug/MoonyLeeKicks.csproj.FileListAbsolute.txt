@@ -1,0 +1,12 @@
+c:\users\daniel\documents\visual studio 2015\Projects\MoonyLeeKicks\MoonyLeeKicks\bin\Debug\MoonyLeeKicks.exe.config
+c:\users\daniel\documents\visual studio 2015\Projects\MoonyLeeKicks\MoonyLeeKicks\bin\Debug\MoonyLeeKicks.exe
+c:\users\daniel\documents\visual studio 2015\Projects\MoonyLeeKicks\MoonyLeeKicks\bin\Debug\MoonyLeeKicks.pdb
+c:\users\daniel\documents\visual studio 2015\Projects\MoonyLeeKicks\MoonyLeeKicks\bin\Debug\EloBuddy.dll
+c:\users\daniel\documents\visual studio 2015\Projects\MoonyLeeKicks\MoonyLeeKicks\bin\Debug\EloBuddy.SDK.dll
+c:\users\daniel\documents\visual studio 2015\Projects\MoonyLeeKicks\MoonyLeeKicks\bin\Debug\SharpDX.dll
+c:\users\daniel\documents\visual studio 2015\Projects\MoonyLeeKicks\MoonyLeeKicks\bin\Debug\SharpDX.Direct3D9.dll
+c:\users\daniel\documents\visual studio 2015\Projects\MoonyLeeKicks\MoonyLeeKicks\bin\Debug\Newtonsoft.Json.dll
+c:\users\daniel\documents\visual studio 2015\Projects\MoonyLeeKicks\MoonyLeeKicks\bin\Debug\EloBuddy.Sandbox.dll
+c:\users\daniel\documents\visual studio 2015\Projects\MoonyLeeKicks\MoonyLeeKicks\obj\Debug\MoonyLeeKicks.exe
+c:\users\daniel\documents\visual studio 2015\Projects\MoonyLeeKicks\MoonyLeeKicks\obj\Debug\MoonyLeeKicks.pdb
+C:\Users\Daniel\Documents\Visual Studio 2015\Projects\MoonyLeeKicks\MoonyLeeKicks\obj\Debug\MoonyLeeKicks.csprojResolveAssemblyReference.cache
