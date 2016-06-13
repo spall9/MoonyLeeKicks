@@ -36,7 +36,7 @@ namespace MoonyLeeKicks
             config.Add("moonSec", new CheckBox("Enable MoonSec", false));
             config.AddLabel("^ For Swag purpose only ^");
             config.AddSeparator(10);
-            config.Add("dashDebug", new KeyBind("Dash Debug (dont use this key)", false, KeyBind.BindTypes.HoldActive));
+            config.Add("dashDebug", new KeyBind("Draw WardJump Position", false, KeyBind.BindTypes.HoldActive));
 
             Game.OnUpdate += GameOnOnUpdate;
 
@@ -274,13 +274,11 @@ namespace MoonyLeeKicks
             bool inRange = me.Distance(wardPlacePos) <= SpellManager.Flash.Range + maxWardJumpDist;
 
 
-            bool q1Casted = SpellManager.CanCastQ2 &&
-                            ObjectManager.Get<Obj_AI_Base>()
-                                .Any(x => x.IsEnemy && x.IsValid && x.HasBuff("BlindMonkQOne"));
+            bool q1Casted = SpellManager.CanCastQ2;
             float distQTargetToWardPos =
                 ObjectManager.Get<Obj_AI_Base>().Any(x => x.IsEnemy && x.IsValid && x.HasBuff("BlindMonkQOne"))
                     ? ObjectManager.Get<Obj_AI_Base>().First(x => x.IsEnemy && x.IsValid && x.HasBuff("BlindMonkQOne")).Distance(wardPlacePos)
-                    : 0;
+                    : float.MaxValue;
             float maxRange = canWardJump ? 600 : 425;
             if (maxRange > 0 && allyJump != null) maxRange = SpellManager.W1.Range;
 
@@ -399,13 +397,13 @@ namespace MoonyLeeKicks
                     {
                         SpellManager.Q1.Cast(targetMinion.Position);
                     }
-                    else if (targetMinion.Distance(wardPlacePos) <= SpellManager.Flash.Range &&
-                             !canWardJump && canFlash)
+
+                    if (targetMinion.Distance(wardPlacePos) <= SpellManager.Flash.Range && canFlash)
                     {
                         SpellManager.Q1.Cast(targetMinion.Position);
                     }
                     /*q minion + wardjump + flash*/
-                    else if (targetMinion.Distance(wardPlacePos) > SpellManager.Flash.Range &&
+                    if (targetMinion.Distance(wardPlacePos) > SpellManager.Flash.Range &&
                              targetMinion.Distance(wardPlacePos) > WardManager.WardRange && canWardJump && canFlash &&
                              targetMinion.Distance(wardPlacePos) <= SpellManager.Flash.Range + WardManager.WardRange)
                     {
