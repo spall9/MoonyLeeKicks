@@ -5,7 +5,6 @@ using System.Linq;
 using EloBuddy;
 using EloBuddy.SDK;
 using EloBuddy.SDK.Enumerations;
-using EloBuddy.SDK.Events;
 using EloBuddy.SDK.Menu;
 using EloBuddy.SDK.Menu.Values;
 using EloBuddy.SDK.Rendering;
@@ -29,11 +28,15 @@ namespace MoonyLeeKicks
             config.AddSeparator(10);
             config.Add("wardDistanceToTarget",
                 new Slider("Ward distance to enemy", 230, 50, 300));
-            config.Add("attendDashes", new CheckBox("Attend dashes"));
+            config.Add("attendDashes", new KeyBind("Attend dashes", true, KeyBind.BindTypes.PressToggle));
+            config.AddLabel("Only calculates extra range if target has Q Buff. Ignores if jumps over minions");
 
+            config.AddSeparator(10);
             config.Add("_insecKey", new KeyBind("LeeSinInsec Key", false, KeyBind.BindTypes.HoldActive));
             config.Add("moonSec", new CheckBox("Enable MoonSec", false));
             config.AddLabel("^ For Swag purpose only ^");
+            config.AddSeparator(10);
+            config.Add("dashDebug", new KeyBind("Dash Debug (dont use this key)", false, KeyBind.BindTypes.HoldActive));
 
             Game.OnUpdate += GameOnOnUpdate;
 
@@ -42,10 +45,13 @@ namespace MoonyLeeKicks
             Drawing.OnDraw += DrawingOnOnDraw;
         }
 
+        private Tuple<Vector2, Vector2> dashDebugTuple;
         private void GameOnOnUpdate(EventArgs args)
         {
             if (ally == null || TargetSelector.SelectedTarget == null)
                 return;
+
+            CheckDashDebug();
 
             bool cantInsec = !ally.IsValid || !TargetSelector.SelectedTarget.IsValid || !config["_insecKey"].Cast<KeyBind>().CurrentValue;
             if (cantInsec)
@@ -55,6 +61,18 @@ namespace MoonyLeeKicks
             if (canInsec)
             {
                 CheckInsec();
+            }
+        }
+
+        private void CheckDashDebug()
+        {
+            bool dashDebug = config["dashDebug"].Cast<KeyBind>().CurrentValue;
+            if (dashDebug)
+            {
+                var wardPlacePos = ally.Position.To2D() + (TargetSelector.SelectedTarget.Position.To2D() - ally.Position.To2D()).Normalized() *
+                                   (TargetSelector.SelectedTarget.Distance(ally) + GetSpaceDistToEnemy());
+                dashDebugTuple = new Tuple<Vector2, Vector2>(wardPlacePos, TargetSelector.SelectedTarget.HasAntiInsecDashReady() ?
+                    TargetSelector.SelectedTarget.CalculateWardPositionAfterDash(ally, GetSpaceDistToEnemy()) : Vector2.Zero);
             }
         }
 
@@ -75,23 +93,10 @@ namespace MoonyLeeKicks
             List<Obj_AI_Base> allyJumps = new List<Obj_AI_Base>();
             #region setVars
             var target = TargetSelector.SelectedTarget;
-            var hasDash = Gapcloser.GapCloserList.Where(spell => spell.ChampName == target.ChampionName)
-                .Any(gap => gap.SkillType != Gapcloser.GapcloserType.Targeted && target.Spellbook.GetSpell(gap.SpellSlot).CooldownExpires - Game.Time <= 0);
 
-
-            var wardDist = config["wardDistanceToTarget"].Cast<Slider>().CurrentValue;
-            if (hasDash && target.HasBuff("BlindMonkQOne") && config["attendDashes"].Cast<CheckBox>().CurrentValue)
-            {
-                List<string> falseGapCloseChamps = new List<string>
-                {
-                    "Amumu",
-                };
-                if (!falseGapCloseChamps.Contains(target.ChampionName))
-                    wardDist += (int)SpellManager.Flash.Range;
-            }
             var wardPlacePos = ally.Position.To2D() +
                                (target.Position.To2D() - ally.Position.To2D()).Normalized() *
-                               (target.Distance(ally) + wardDist);
+                               (target.Distance(ally) + GetSpaceDistToEnemy());
             #endregion setVars
 
             foreach (var allyobj in ObjectManager.Get<Obj_AI_Base>().Where(x => 
@@ -178,6 +183,13 @@ namespace MoonyLeeKicks
             }
             else if (config["_insecKey"].Cast<KeyBind>().CurrentValue)
                 DrawFailInfo();
+
+            bool dashDebug = config["dashDebug"].Cast<KeyBind>().CurrentValue;
+            if (dashDebug && dashDebugTuple != null)
+            {
+                new Circle(new ColorBGRA(new Vector4(0, 0, 255, 1)), 70, 4).Draw(dashDebugTuple.Item1.To3D());
+                new Circle(new ColorBGRA(new Vector4(0, 0, 255, 1)), 70, 4).Draw(dashDebugTuple.Item2.To3D());
+            }
         }
 
         private void DrawFailInfo()
@@ -217,7 +229,8 @@ namespace MoonyLeeKicks
         private bool CanWardKick(Vector2 wardPlacePos, AIHeroClient target)
         {
             var allyJump = GetAllyAsWard();
-            var canWardJump = WardManager.CanCastWard || allyJump != null;
+            var canWardJump = (WardManager.CanCastWard || allyJump != null) && SpellManager.CanCastW1 &&
+                me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana;
             float maxDist = WardManager.CanCastWard ? WardManager.WardRange : SpellManager.W1.Range;
 
             if (me.Distance(wardPlacePos) <= maxDist && canWardJump)
@@ -237,13 +250,11 @@ namespace MoonyLeeKicks
         private bool CanFlashKick(Vector2 wardPlacePos, AIHeroClient target)
         {
             var canFlash = SpellManager.FlashReady;
-            var canWardJump = SpellManager.CanCastW1 && me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana &&
-                              WardManager.CanCastWard;
 
-            if (me.Distance(wardPlacePos) <= SpellManager.Flash.Range && !canWardJump && canFlash)
+            if (me.Distance(wardPlacePos) <= SpellManager.Flash.Range && canFlash)
             {
                 SpellManager.Flash.Cast(wardPlacePos.To3D());
-                Core.RepeatAction(() => SpellManager.R.Cast(target), 350, 1500);
+                Core.RepeatAction(() => SpellManager.R.Cast(target), 150, 1500);
                 ally = null;
                 return true;
             }
@@ -313,6 +324,11 @@ namespace MoonyLeeKicks
             return false;
         }
 
+        float GetSpaceDistToEnemy()
+        {
+            return config["wardDistanceToTarget"].Cast<Slider>().CurrentValue;
+        }
+
         private void CheckInsec()
         {
             if (!me.Spellbook.GetSpell(SpellSlot.Q).Name.Contains("One"))
@@ -320,28 +336,22 @@ namespace MoonyLeeKicks
             Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
 
             #region setVars
-            var target = TargetSelector.SelectedTarget;
-            var hasDash = Gapcloser.GapCloserList.Where(spell => spell.ChampName == target.ChampionName)
-                .Any(gap => gap.SkillType != Gapcloser.GapcloserType.Targeted && target.Spellbook.GetSpell(gap.SpellSlot).CooldownExpires - Game.Time <= 0);
+                var target = TargetSelector.SelectedTarget;
+            
 
-            var canFlash = SpellManager.FlashReady;
-            var canWardJump = SpellManager.CanCastW1 && me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana &&
-                              WardManager.CanCastWard;
-            var canQ = SpellManager.CanCastQ1;
-            var wardDist = config["wardDistanceToTarget"].Cast<Slider>().CurrentValue;
-            if (hasDash && target.HasBuff("BlindMonkQOne") && config["attendDashes"].Cast<CheckBox>().CurrentValue)
-            {
-                List<string> falseGapCloseChamps = new List<string>
-                {
-                    "Amumu",
-                };
-                if (!falseGapCloseChamps.Contains(target.ChampionName))
-                wardDist += (int)SpellManager.Flash.Range;
-            }
-            var wardPlacePos = ally.Position.To2D() +
-                               (target.Position.To2D() - ally.Position.To2D()).Normalized()*
-                               (target.Distance(ally) + wardDist);
-#endregion setVars
+                var canFlash = SpellManager.FlashReady;
+                var canWardJump = SpellManager.CanCastW1 && me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana &&
+                                  WardManager.CanCastWard;
+                var canQ = SpellManager.CanCastQ1;
+                var wardPlacePos = ally.Position.To2D() + (target.Position.To2D() - ally.Position.To2D()).Normalized()*
+                                   (target.Distance(ally) + GetSpaceDistToEnemy());
+            #endregion setVars
+
+            bool hasQBuff = target.HasBuff("BlindMonkQOne");
+            bool attendDash = config["attendDashes"].Cast<KeyBind>().CurrentValue;
+            bool hasDash = target.HasAntiInsecDashReady();
+            if (hasDash && attendDash && hasQBuff)
+                wardPlacePos = target.CalculateWardPositionAfterDash(ally, GetSpaceDistToEnemy());
 
             /*normal q cast on enemy*/
             var qPred = SpellManager.Q1.GetPrediction(target);

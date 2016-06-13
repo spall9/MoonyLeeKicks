@@ -34,6 +34,7 @@ namespace MoonyLeeKicks
                 {
                     WardManager.Init();
                     SpellManager.Init();
+                    ChampionDashes.Init();
 
                     config = MainMenu.AddMenu("MoonyLeeSin", "__MoonyLeeSin");
                     config.Add("moonyLee_useQ", new CheckBox("Use Q Combo"));
@@ -207,16 +208,19 @@ namespace MoonyLeeKicks
             if (target == null || !target.IsValid)
                 return;
 
-            if (useQ)
+            if (useQ && SpellManager.CanCastQ1 && Orbwalker.CanMove)
             {
                 var qPred = SpellManager.Q1.GetPrediction(target);
                 if (qPred.HitChance >= HitChance.High)
                     SpellManager.Q1.Cast(qPred.CastPosition);
             }
-            if (useE && target.Distance(me) <= SpellManager.E1.Range && SpellManager.CanCastE1)
+            if (useQ && SpellManager.CanCastQ2 && Orbwalker.CanMove)
+                SpellManager.Q2.Cast();
+
+            if (useE && target.Distance(me) <= SpellManager.E1.Range && SpellManager.CanCastE1 && Orbwalker.CanMove)
                 SpellManager.E1.Cast(me.Position);
 
-            if (SpellManager.CanCastE2)
+            if (SpellManager.CanCastE2 && Orbwalker.CanMove)
                 SpellManager.E2.Cast(me.Position);
 
             if (target.Distance(me) > me.GetAutoAttackRange() && useW)
