@@ -290,8 +290,7 @@ namespace MoonyLeeKicks
         private bool moonSecActive = false;
         private bool CanMoonSec(AIHeroClient target)
         {
-            var wardPlacePos = ally.Position.To2D() + (target.Position.To2D() - ally.Position.To2D()).Normalized() *
-                               (target.Distance(ally) - (float)SpellManager.R.Range/4);
+            var wardPlacePos = ally.Position.To2D() + (target.Position.To2D() - ally.Position.To2D());
 
             var canFlash = SpellManager.FlashReady;
             var canWardJump = SpellManager.CanCastW1 && me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana &&

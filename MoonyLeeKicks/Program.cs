@@ -190,7 +190,7 @@ namespace MoonyLeeKicks
             else if (enoughMana && doWardJump && allyobj != null)
             {
                 SpellManager.W1.Cast(allyobj);
-                Core.DelayAction(() => SpellManager.W2.Cast(), 1000);
+                Core.DelayAction(() => { if (SpellManager.CanCastW2) SpellManager.W2.Cast(); }, 1000);
             }
         }
 
@@ -226,7 +226,7 @@ namespace MoonyLeeKicks
                 bool canW = SpellManager.W1.IsReady() && me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana;
 
                 var allyobj = ObjectManager.Get<Obj_AI_Base>().
-                    Where(x => x.IsAlly && !x.IsMe && x.IsValid && (x is Obj_AI_Minion || x is AIHeroClient))
+                    Where(x => x != null && x.IsAlly && !x.IsMe && x.IsValid && (x is Obj_AI_Minion || x is AIHeroClient))
                     .OrderBy(x => x.Distance(me))
                     .FirstOrDefault(x => x.Distance(target) <= me.GetAutoAttackRange());
 
