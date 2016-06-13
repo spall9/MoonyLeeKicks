@@ -147,7 +147,7 @@ namespace MoonyLeeKicks
             if (Item.HasItem(ItemId.Zhonyas_Hourglass) && Item.CanUseItem(ItemId.Zhonyas_Hourglass) && 
                 (!moonSecActive || !SpellManager.FlashReady))
             {
-                Core.RepeatAction(() => Item.UseItem(ItemId.Zhonyas_Hourglass), 80, 1000);
+                Core.RepeatAction(() => Item.UseItem(ItemId.Zhonyas_Hourglass), 100, 1000);
             }
         }
 
