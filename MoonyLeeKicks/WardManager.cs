@@ -34,7 +34,8 @@ namespace MoonyLeeKicks
 
         public static bool CanWardJump
         {
-            get { return CanCastWard && SpellManager.CanCastW1; }
+            get { return CanCastWard && SpellManager.CanCastW1 && 
+                    ObjectManager.Player.Mana >= ObjectManager.Player.Spellbook.GetSpell(SpellSlot.W).SData.Mana; }
         }
 
         public static bool CanCastWard

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using EloBuddy;
 using EloBuddy.SDK;
@@ -35,9 +36,9 @@ namespace MoonyLeeKicks
                     SpellManager.Init();
 
                     config = MainMenu.AddMenu("MoonyLeeSin", "__MoonyLeeSin");
-                    config.AddLabel("WardJump in FleeMode");
-                    config.AddSeparator(10);
                     config.Add("moonyLee_useQ", new CheckBox("Use Q Combo"));
+                    config.Add("moonyLee_useW", new CheckBox("Use W to GapClose"));
+                    config.Add("moonyLee_useE", new CheckBox("Use E Combo"));
                     config.AddSeparator();
                     config.Add("moonyLee_useQWC", new CheckBox("Use Q WaveClear"));
                     config.Add("moonyLee_useWWC", new CheckBox("Use W WaveClear"));
@@ -46,6 +47,8 @@ namespace MoonyLeeKicks
                     config.Add("moonyLee_useQJC", new CheckBox("Use Q JungleClear"));
                     config.Add("moonyLee_useWJC", new CheckBox("Use W JungleClear"));
                     config.Add("moonyLee_useEJC", new CheckBox("Use E JungleClear"));
+                    config.AddSeparator();
+                    config.Add("moonyLee_useWardJump", new CheckBox("Wardjump in Flee Mode"));
                     new LeeSinInsec(ref config);
 
                     Game.OnUpdate += LeeSinOnUpdate;
@@ -70,6 +73,22 @@ namespace MoonyLeeKicks
                     JungleClear();
                     break;
             }
+        }
+
+        static Obj_AI_Base GetAllyAsWard(Vector2 wardPlacePos)
+        {
+            List<Obj_AI_Base> allyJumps = new List<Obj_AI_Base>();
+
+            foreach (var allyobj in ObjectManager.Get<Obj_AI_Base>().Where(x =>
+                            x.IsValid && x.IsAlly && !x.IsMe && (x is AIHeroClient || x is Obj_AI_Minion)))
+            {
+                if (allyobj.Distance(wardPlacePos) <= 80)
+                {
+                    allyJumps.Add(allyobj);
+                }
+            }
+            Obj_AI_Base obj = allyJumps.Any() ? allyJumps.OrderBy(x => x.Distance(wardPlacePos)).First() : null;
+            return obj;
         }
 
         private static int lastWCastJungleClear;
@@ -156,34 +175,65 @@ namespace MoonyLeeKicks
 
         private static void Flee()
         {
-            try
-            {
-                Vector2 jumpPos = me.Position.To2D() +
-                                (Game.CursorPos.To2D() - me.Position.To2D()).Normalized() * WardManager.WardRange;
+            Vector2 jumpPos = me.Position.To2D() +
+                            (Game.CursorPos.To2D() - me.Position.To2D()).Normalized() * WardManager.WardRange;
 
-                if (WardManager.CanCastWard && me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana)
-                {
-                    WardManager.CastWardTo(jumpPos.To3D());
-                }
-            }
-            catch (Exception ex )
+            Obj_AI_Base allyobj = GetAllyAsWard(jumpPos);
+            bool canWard = WardManager.CanCastWard;
+            bool enoughMana = me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana;
+            bool doWardJump = config["moonyLee_useWardJump"].Cast<CheckBox>().CurrentValue;
+
+            if (canWard && enoughMana && doWardJump && allyobj == null)
             {
-                //Chat.Print(ex.Message);
+                WardManager.CastWardTo(jumpPos.To3D());
+            }
+            else if (enoughMana && doWardJump && allyobj != null)
+            {
+                SpellManager.W1.Cast(allyobj);
+                Core.DelayAction(() => SpellManager.W2.Cast(), 1000);
             }
         }
 
         private static void Combo()
         {
             bool useQ = config["moonyLee_useQ"].Cast<CheckBox>().CurrentValue;
+            bool useW = config["moonyLee_useW"].Cast<CheckBox>().CurrentValue;
+            bool useE = config["moonyLee_useE"].Cast<CheckBox>().CurrentValue;
+
 
             var target = TargetSelector.SelectedTarget ?? TargetSelector.GetTarget(1000, DamageType.Magical) ??
                          TargetSelector.GetTarget(1000, DamageType.Physical);
 
-            if (useQ && target != null)
+            if (target == null || !target.IsValid)
+                return;
+
+            if (useQ)
             {
                 var qPred = SpellManager.Q1.GetPrediction(target);
                 if (qPred.HitChance >= HitChance.High)
                     SpellManager.Q1.Cast(qPred.CastPosition);
+            }
+            if (useE && target.Distance(me) <= SpellManager.E1.Range && SpellManager.CanCastE1)
+                SpellManager.E1.Cast(me.Position);
+
+            if (SpellManager.CanCastE2)
+                SpellManager.E2.Cast(me.Position);
+
+            if (target.Distance(me) > me.GetAutoAttackRange() && useW)
+            {
+                //w gap
+                bool canWard = WardManager.CanCastWard;
+                bool canW = SpellManager.W1.IsReady() && me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana;
+
+                var allyobj = ObjectManager.Get<Obj_AI_Base>().
+                    Where(x => x.IsAlly && !x.IsMe && x.IsValid && (x is Obj_AI_Minion || x is AIHeroClient))
+                    .OrderBy(x => x.Distance(me))
+                    .FirstOrDefault(x => x.Distance(target) <= me.GetAutoAttackRange());
+
+                if (allyobj != null && canW)
+                    SpellManager.W1.Cast(allyobj);
+                else if (allyobj == null && canWard && canW)
+                    WardManager.CastWardTo(target.Position);
             }
         }
     }

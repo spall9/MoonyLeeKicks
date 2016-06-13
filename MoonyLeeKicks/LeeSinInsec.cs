@@ -118,12 +118,12 @@ namespace MoonyLeeKicks
                                (target.Distance(ally) - (float)SpellManager.R.Range / 2);
                 var flashPos = wardPlacePos.Extend(target, SpellManager.Flash.Range);
 
-                Core.RepeatAction(() =>
+                Core.DelayAction(() =>
                 {
                     SpellManager.Flash.Cast(flashPos.To3D());
                     moonSecActive = false;
                     ally = null;
-                }, 80, 2000);
+                }, 80);
             }
 
             var canQ = SpellManager.CanCastQ1;
@@ -138,6 +138,11 @@ namespace MoonyLeeKicks
             if (SpellManager.SmiteReady)
             {
                 Core.DelayAction(() => SpellManager.Smite.Cast(args.Target as Obj_AI_Base), 500);
+            }
+            if (Item.HasItem(ItemId.Zhonyas_Hourglass) && Item.CanUseItem(ItemId.Zhonyas_Hourglass) && 
+                (!moonSecActive || !SpellManager.FlashReady))
+            {
+                Core.RepeatAction(() => Item.UseItem(ItemId.Zhonyas_Hourglass), 80, 1000);
             }
         }
 
