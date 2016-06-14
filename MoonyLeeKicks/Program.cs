@@ -99,7 +99,7 @@ namespace MoonyLeeKicks
                 EntityManager.MinionsAndMonsters.Monsters.Where(x => x.Distance(me) <= 500 && x.IsValid).
                     OrderByDescending(x => x.Health).FirstOrDefault();
 
-            if (targetMinion != null)
+            if (targetMinion != null && targetMinion.IsValid)
             {
                 bool useQ = config["moonyLee_useQJC"].Cast<CheckBox>().CurrentValue;
                 bool useW = config["moonyLee_useWJC"].Cast<CheckBox>().CurrentValue;
@@ -142,7 +142,7 @@ namespace MoonyLeeKicks
             var targetMinion =
                 EntityManager.MinionsAndMonsters.EnemyMinions.Where(x => x.Distance(me) <= 500 && x.IsValid).OrderByDescending(x => x.Health).FirstOrDefault();
 
-            if (targetMinion != null)
+            if (targetMinion != null && targetMinion.IsValid)
             {
                 try
                 {
@@ -188,7 +188,7 @@ namespace MoonyLeeKicks
             {
                 WardManager.CastWardTo(jumpPos.To3D());
             }
-            else if (enoughMana && doWardJump && allyobj != null)
+            else if (enoughMana && doWardJump && allyobj != null && allyobj.IsValid)
             {
                 SpellManager.W1.Cast(allyobj);
                 Core.DelayAction(() => { if (SpellManager.CanCastW2) SpellManager.W2.Cast(); }, 1000);

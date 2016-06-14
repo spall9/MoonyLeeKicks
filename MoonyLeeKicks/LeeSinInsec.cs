@@ -15,7 +15,7 @@ namespace MoonyLeeKicks
 {
     internal class LeeSinInsec
     {
-        private static AIHeroClient ally;
+        private static Obj_AI_Base ally;
         //TODO: pink ward jump for special champs
 
         private readonly Menu config;
@@ -83,7 +83,7 @@ namespace MoonyLeeKicks
                                   me.Spellbook.GetSpell(SpellSlot.W).SData.Mana
                                 : me.Spellbook.GetSpell(SpellSlot.Q).SData.Mana;
 
-            bool canJump = SpellManager.CanCastW1 || SpellManager.FlashReady || GetAllyAsWard() != null;
+            bool canJump = SpellManager.CanCastW1 || SpellManager.FlashReady || (GetAllyAsWard() != null && GetAllyAsWard().IsValid);
             bool canInsec = canJump && SpellManager.R.IsReady() && me.Mana >= minMana;
             return canInsec;
         }
@@ -113,7 +113,7 @@ namespace MoonyLeeKicks
 
         private void AiHeroClientOnOnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            if (!sender.IsMe || args.Slot != SpellSlot.R)
+            if (!sender.IsMe || args.Slot != SpellSlot.R || !config["_insecKey"].Cast<KeyBind>().CurrentValue)
                 return;
 
             if (moonSecActive)
@@ -217,7 +217,8 @@ namespace MoonyLeeKicks
         {
             if (args.Msg == (uint) WindowMessages.LeftButtonDown)
             {
-                var allyy = EntityManager.Heroes.Allies.OrderBy(x => x.Distance(Game.CursorPos)).FirstOrDefault
+                var allyy = ObjectManager.Get<Obj_AI_Base>().Where(x => !x.IsMe && x.IsAlly && x.IsValid && 
+                (x is AIHeroClient || x is Obj_AI_Turret)).OrderBy(x => x.Distance(Game.CursorPos)).FirstOrDefault
                     (x => x.Distance(Game.CursorPos) <= 200 && !x.IsMe && x.IsValid);
                 if (allyy != null && allyy.IsValid)
                 {
@@ -229,7 +230,8 @@ namespace MoonyLeeKicks
         private bool CanWardKick(Vector2 wardPlacePos, AIHeroClient target)
         {
             var allyJump = GetAllyAsWard();
-            var canWardJump = (WardManager.CanCastWard || allyJump != null) && SpellManager.CanCastW1 &&
+            var allyJumpValid = allyJump != null && allyJump.IsValid;
+            var canWardJump = (WardManager.CanCastWard || allyJumpValid) && SpellManager.CanCastW1 &&
                 me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana;
             float maxDist = WardManager.CanCastWard ? WardManager.WardRange : SpellManager.W1.Range;
 
@@ -265,7 +267,8 @@ namespace MoonyLeeKicks
         private bool CanWardFlashKick(Vector2 wardPlacePos)
         {
             var allyJump = GetAllyAsWard();
-            var canWardJump = (WardManager.CanCastWard || allyJump != null) &&
+            var allyJumpValid = allyJump != null && allyJump.IsValid;
+            var canWardJump = (WardManager.CanCastWard || allyJumpValid) &&
                                 me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana;
             float maxWardJumpDist = allyJump == null ? WardManager.WardRange : SpellManager.W1.Range;
 
@@ -280,7 +283,7 @@ namespace MoonyLeeKicks
                     ? ObjectManager.Get<Obj_AI_Base>().First(x => x.IsEnemy && x.IsValid && x.HasBuff("BlindMonkQOne")).Distance(wardPlacePos)
                     : float.MaxValue;
             float maxRange = canWardJump ? 600 : 425;
-            if (maxRange > 0 && allyJump != null) maxRange = SpellManager.W1.Range;
+            if (maxRange > 0 && allyJumpValid) maxRange = SpellManager.W1.Range;
 
             bool dontNeedFlash = q1Casted && distQTargetToWardPos <= maxRange && canWardJump;
 
@@ -391,7 +394,7 @@ namespace MoonyLeeKicks
                 #endregion
 
                 var targetMinion = minList.OrderBy(x => x.Distance(target)).FirstOrDefault();
-                if (targetMinion != null)
+                if (targetMinion != null && targetMinion.IsValid)
                 {
                     if (targetMinion.Distance(wardPlacePos) <= WardManager.WardRange && canWardJump)
                     {

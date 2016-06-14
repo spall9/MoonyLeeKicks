@@ -35,7 +35,7 @@ namespace MoonyLeeKicks
             }
         }
 
-        public static Vector2 CalculateWardPositionAfterDash(this AIHeroClient target, AIHeroClient SelectedAlly,
+        public static Vector2 CalculateWardPositionAfterDash(this AIHeroClient target, Obj_AI_Base SelectedAlly,
             float normalDistance)
         {
             var dashInfo = DashInfos.FirstOrDefault(x => x.ChampionName == target.ChampionName);
@@ -109,7 +109,7 @@ namespace MoonyLeeKicks
         /// <param name="SelectedAlly"></param>
         /// <param name="normalDistance"></param>
         /// <returns></returns>
-        public Vector2 CalculateNewWardPosition(AIHeroClient SelectedAlly, float normalDistance)
+        public Vector2 CalculateNewWardPosition(Obj_AI_Base SelectedAlly, float normalDistance)
         {
             var me = ObjectManager.Player;
             var target = EntityManager.Heroes.Enemies.FirstOrDefault(x => x.ChampionName == ChampionName);
