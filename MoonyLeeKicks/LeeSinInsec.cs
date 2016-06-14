@@ -93,6 +93,8 @@ namespace MoonyLeeKicks
             List<Obj_AI_Base> allyJumps = new List<Obj_AI_Base>();
             #region setVars
             var target = TargetSelector.SelectedTarget;
+            if (target == null || !target.IsValid || ally == null || !ally.IsValid)
+                return null;
 
             var wardPlacePos = ally.Position.To2D() +
                                (target.Position.To2D() - ally.Position.To2D()).Normalized() *
