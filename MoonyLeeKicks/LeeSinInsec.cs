@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Threading.Tasks;
 using EloBuddy;
 using EloBuddy.SDK;
 using EloBuddy.SDK.Enumerations;
@@ -24,8 +25,7 @@ namespace MoonyLeeKicks
         public LeeSinInsec(ref Menu mainMenu)
         {
             config = mainMenu.AddSubMenu("MoonyInsec", "LeeSinInsec");
-            config.AddLabel("Kicks to allies | Uses Ward > Flash");
-            config.AddSeparator(10);
+            config.AddGroupLabel("Insec");
             config.Add("wardDistanceToTarget",
                 new Slider("Ward distance to enemy", 230, 50, 300));
             config.Add("attendDashes", new KeyBind("Attend dashes", true, KeyBind.BindTypes.PressToggle));
@@ -36,6 +36,14 @@ namespace MoonyLeeKicks
             config.Add("moonSec", new CheckBox("Enable MoonSec", false));
             config.AddLabel("^ For Swag purpose only ^");
             config.AddSeparator(10);
+            config.AddGroupLabel("Performance");
+            config.Add("smoothFps", new CheckBox("Use Multitasking to prevent FPS-Drops", false));
+            config.Add("smoothFpsBuffer", new Slider("Buffer Tick", 100, 100, 1000));
+            config.AddLabel("Increase this value, if Multitasking is enabled, to gain more Fps");
+            config.Add("smoothFpsMaxTasks", new Slider("Maximum Tasks", 100, 1, 1000));
+            config.AddLabel("Decrease this value, if Multitasking is enabled, to gain more Fps");
+            config.AddSeparator(10);
+            config.AddGroupLabel("Drawings");
             config.Add("dashDebug", new KeyBind("Draw WardJump Position", false, KeyBind.BindTypes.HoldActive));
 
             Game.OnUpdate += GameOnOnUpdate;
@@ -46,8 +54,12 @@ namespace MoonyLeeKicks
         }
 
         private Tuple<Vector2, Vector2> dashDebugTuple;
+        private int lastInsecCallTick = 0;
+        readonly List<Task> InsecTaskList = new List<Task>(); 
         private void GameOnOnUpdate(EventArgs args)
         {
+            InsecTaskList.RemoveAll(x => x.IsCompleted);
+
             if (ally == null || TargetSelector.SelectedTarget == null)
                 return;
 
@@ -56,11 +68,29 @@ namespace MoonyLeeKicks
             bool cantInsec = !ally.IsValid || !TargetSelector.SelectedTarget.IsValid || !config["_insecKey"].Cast<KeyBind>().CurrentValue;
             if (cantInsec)
                 return;
-            bool canInsec = HasResourcesToInsec();
 
+            bool canInsec = HasResourcesToInsec();
             if (canInsec)
             {
-                CheckInsec();
+                bool smoothFps = config["smoothFps"].Cast<CheckBox>().CurrentValue;
+                int smoothBuffer = config["smoothFpsBuffer"].Cast<Slider>().CurrentValue;
+                int maxTasks = config["smoothFpsMaxTasks"].Cast<Slider>().CurrentValue;
+                if (smoothFps && InsecTaskList.Count <= maxTasks && Environment.TickCount - lastInsecCallTick >= smoothBuffer)
+                {
+                    lastInsecCallTick = Environment.TickCount;
+                    try
+                    {
+                        var t = Task.Factory.StartNew(() =>
+                        {
+                            try { CheckInsec(); } catch { }
+                        });
+                        InsecTaskList.Add(t);
+                    }
+                    catch { }
+                    
+                }
+                else if (!smoothFps)
+                    CheckInsec();
             }
         }
 

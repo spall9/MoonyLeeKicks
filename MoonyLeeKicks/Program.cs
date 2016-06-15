@@ -180,15 +180,16 @@ namespace MoonyLeeKicks
                             (Game.CursorPos.To2D() - me.Position.To2D()).Normalized() * WardManager.WardRange;
 
             Obj_AI_Base allyobj = GetAllyAsWard(jumpPos);
+            bool allyobjValid = allyobj != null && allyobj.IsValid;
             bool canWard = WardManager.CanCastWard;
             bool enoughMana = me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana;
             bool doWardJump = config["moonyLee_useWardJump"].Cast<CheckBox>().CurrentValue;
 
-            if (canWard && enoughMana && doWardJump && allyobj == null)
+            if (canWard && enoughMana && doWardJump && !allyobjValid)
             {
                 WardManager.CastWardTo(jumpPos.To3D());
             }
-            else if (enoughMana && doWardJump && allyobj != null && allyobj.IsValid)
+            else if (enoughMana && doWardJump && allyobjValid)
             {
                 SpellManager.W1.Cast(allyobj);
                 Core.DelayAction(() => { if (SpellManager.CanCastW2) SpellManager.W2.Cast(); }, 1000);
@@ -233,10 +234,11 @@ namespace MoonyLeeKicks
                     Where(x => x != null && x.IsAlly && !x.IsMe && x.IsValid && (x is Obj_AI_Minion || x is AIHeroClient))
                     .OrderBy(x => x.Distance(me))
                     .FirstOrDefault(x => x.Distance(target) <= me.GetAutoAttackRange());
+                var allyobjValid = allyobj != null && allyobj.IsValid;
 
-                if (allyobj != null && canW)
+                if (allyobjValid && canW)
                     SpellManager.W1.Cast(allyobj);
-                else if (allyobj == null && canWard && canW)
+                else if (!allyobjValid && canWard && canW)
                     WardManager.CastWardTo(target.Position);
             }
         }
