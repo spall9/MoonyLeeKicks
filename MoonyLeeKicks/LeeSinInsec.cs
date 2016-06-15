@@ -188,7 +188,7 @@ namespace MoonyLeeKicks
             if (ally != null && ally.IsValid)
                 new Circle(new ColorBGRA(new Vector4(255, 255, 255, 1)), 100, 2).Draw(ally.Position);
 
-            if (ally == null || TargetSelector.SelectedTarget == null)
+            if (ally == null || TargetSelector.SelectedTarget == null || !ally.IsValid || !TargetSelector.SelectedTarget.IsValid)
             {
                 if (config["_insecKey"].Cast<KeyBind>().CurrentValue)
                     DrawFailInfo();
