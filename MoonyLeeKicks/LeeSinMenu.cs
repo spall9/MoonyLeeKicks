@@ -8,12 +8,14 @@ namespace MoonyLeeKicks
         public static Menu config;
         public static Menu insecConfig;
         public static Menu multiRMenu;
+        public static Menu smiteMenu;
         public static void Init()
         {
             config = MainMenu.AddMenu("MoonyLeeSin", "__MoonyLeeSin");
             config.Add("moonyLee_useQ", new CheckBox("Use Q Combo"));
-            config.Add("moonyLee_useW", new CheckBox("Use W to GapClose"));
+            config.Add("moonyLee_useWGap", new CheckBox("Use W to GapClose"));
             config.Add("moonyLee_useE", new CheckBox("Use E Combo"));
+            config.Add("moonyLee_useRKs", new CheckBox("Killsteal R Combo", false));
             config.AddSeparator();
             config.Add("moonyLee_useQWC", new CheckBox("Use Q WaveClear"));
             config.Add("moonyLee_useWWC", new CheckBox("Use W WaveClear"));
@@ -24,6 +26,7 @@ namespace MoonyLeeKicks
             config.Add("moonyLee_useEJC", new CheckBox("Use E JungleClear"));
             config.AddSeparator();
             config.Add("moonyLee_useWardJump", new CheckBox("Wardjump in Flee Mode"));
+            config.Add("moonyLee_useRKs_General", new CheckBox("Killsteal R if possible", false));
 
             insecConfig = config.AddSubMenu("MoonyInsec", "LeeSinInsec");
             insecConfig.AddGroupLabel("Insec");
@@ -54,6 +57,13 @@ namespace MoonyLeeKicks
             multiRMenu.Add("multiREnabledInsec", new CheckBox("Enable in InsecMode"));
             multiRMenu.Add("rotationAngle", new Slider("Kick angle [in Degrees]", 40, 0, 90));
             multiRMenu.AddLabel("45° => The Addon is allowed to kick up to 45° sidewards during the insec if multiple targets get hit");
+
+            smiteMenu = config.AddSubMenu("Smite", "smiteMenuMoonyLeeSin");
+            smiteMenu.Add("useSmite", new KeyBind("Use Smite", false, KeyBind.BindTypes.PressToggle));
+            foreach (var baseSkinName in new [] {"SRU_Red", "SRU_Blue", "SRU_Dragon", "SRU_Baron"})
+            {
+                smiteMenu.Add("useSmite" + baseSkinName, new CheckBox(baseSkinName.Replace("SRU_", "")));
+            }
         }
     }
 }

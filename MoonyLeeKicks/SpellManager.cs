@@ -2,7 +2,6 @@
 using EloBuddy;
 using EloBuddy.SDK;
 using EloBuddy.SDK.Enumerations;
-using SharpDX;
 
 namespace MoonyLeeKicks
 {
@@ -37,19 +36,27 @@ namespace MoonyLeeKicks
             };
 
             R = new Spell.Targeted(SpellSlot.R, 375);
+            SetSmite();
 
-            if (me.GetSpellSlotFromName("smite") != SpellSlot.Unknown)
-                Smite = new Spell.Targeted(me.GetSpellSlotFromName("smite"), 500);
             if (me.GetSpellSlotFromName("summonerexhaust") != SpellSlot.Unknown)
                 Exhaust = new Spell.Targeted(me.GetSpellSlotFromName("summonerexhaust"), 600);
 
             Flash = new Spell.Skillshot(me.GetSpellSlotFromName("summonerflash"), 425, SkillShotType.Linear);
         }
 
-        public static void CastW(Vector3 pos)
+        private static void SetSmite()
         {
-            W1.Cast(pos);
-            Core.DelayAction(() => W2.Cast(), 1000);
+            int[] SmiteRed = { 3715, 1415, 1414, 1413, 1412 };
+            int[] SmiteBlue = { 3706, 1403, 1402, 1401, 1400 };
+
+            SpellSlot smiteSlot;
+            if (SmiteBlue.Any(x => ObjectManager.Player.InventoryItems.FirstOrDefault(a => a.Id == (ItemId)x) != null))
+                smiteSlot = ObjectManager.Player.GetSpellSlotFromName("s5_summonersmiteplayerganker");
+            else if (SmiteRed.Any(x => ObjectManager.Player.InventoryItems.FirstOrDefault(a => a.Id == (ItemId)x) != null))
+                smiteSlot = ObjectManager.Player.GetSpellSlotFromName("s5_summonersmiteduel");
+            else
+                smiteSlot = ObjectManager.Player.GetSpellSlotFromName("summonersmite");
+            Smite = new Spell.Targeted(smiteSlot, 500);
         }
 
         public static bool CanCastW1

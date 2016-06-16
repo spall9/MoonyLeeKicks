@@ -47,6 +47,13 @@ namespace MoonyLeeKicks
 
         private static void LeeSinOnUpdate(EventArgs args)
         {
+            if (SpellManager.R.IsReady() && LeeSinMenu.config["moonyLee_useRKs_General"].Cast<CheckBox>().CurrentValue)
+                foreach (AIHeroClient killableEnemy in EntityManager.Heroes.Enemies.Where(x => x.IsValid && 
+                    me.GetSpellDamage(x, SpellSlot.R) > x.Health && x.Distance(me) <= SpellManager.R.Range))
+                {
+                    SpellManager.R.Cast(killableEnemy);
+                }
+
             switch (Orbwalker.ActiveModesFlags)
             {
                     case Orbwalker.ActiveModes.Combo:
@@ -187,12 +194,11 @@ namespace MoonyLeeKicks
         private static void Combo()
         {
             bool useQ = LeeSinMenu.config["moonyLee_useQ"].Cast<CheckBox>().CurrentValue;
-            bool useW = LeeSinMenu.config["moonyLee_useW"].Cast<CheckBox>().CurrentValue;
+            bool useW = LeeSinMenu.config["moonyLee_useWGap"].Cast<CheckBox>().CurrentValue;
             bool useE = LeeSinMenu.config["moonyLee_useE"].Cast<CheckBox>().CurrentValue;
+            bool ksR = LeeSinMenu.config["moonyLee_useRKs"].Cast<CheckBox>().CurrentValue;
 
-
-            var target = TargetSelector.SelectedTarget ?? TargetSelector.GetTarget(1000, DamageType.Magical) ??
-                         TargetSelector.GetTarget(1000, DamageType.Physical);
+            var target = TargetSelector.GetTarget(1000, DamageType.Magical) ?? TargetSelector.GetTarget(1000, DamageType.Physical);
 
             if (target == null || !target.IsValid || target.IsDead)
                 return;
@@ -229,6 +235,10 @@ namespace MoonyLeeKicks
                 else if (!allyobjValid && canWard && canW)
                     WardManager.CastWardTo(target.Position);
             }
+
+            if (ksR && SpellManager.R.IsReady() && me.Distance(target) <= SpellManager.R.Range &&
+                me.GetSpellDamage(target, SpellSlot.R) > target.Health)
+                SpellManager.R.Cast(target);
         }
     }
 }
