@@ -55,7 +55,6 @@
     <Compile Include="DashInfo.cs" />
     <Compile Include="LeeSinInsec.cs" />
     <Compile Include="LeeSinMenu.cs" />
-    <Compile Include="LeeSinSmite.cs" />
     <Compile Include="MultiKick.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -60,13 +60,6 @@ namespace MoonyLeeKicks
             multiRMenu.Add("multiREnabledInsec", new CheckBox("Enable in InsecMode"));
             multiRMenu.Add("rotationAngle", new Slider("Kick angle [in Degrees]", 40, 0, 90));
             multiRMenu.AddLabel("45° => The Addon is allowed to kick up to 45° sidewards during the insec if multiple targets get hit");
-
-            smiteMenu = config.AddSubMenu("Smite", "smiteMenuMoonyLeeSin");
-            smiteMenu.Add("useSmite", new KeyBind("Use Smite", false, KeyBind.BindTypes.PressToggle));
-            foreach (var baseSkinName in new [] {"SRU_Red", "SRU_Blue", "SRU_Dragon", "SRU_Baron"})
-            {
-                smiteMenu.Add("useSmite" + baseSkinName, new CheckBox(baseSkinName.Replace("SRU_", "")));
-            }
         }
     }
 }
