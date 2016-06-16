@@ -197,6 +197,7 @@ namespace MoonyLeeKicks
             bool useW = LeeSinMenu.config["moonyLee_useWGap"].Cast<CheckBox>().CurrentValue;
             bool useE = LeeSinMenu.config["moonyLee_useE"].Cast<CheckBox>().CurrentValue;
             bool ksR = LeeSinMenu.config["moonyLee_useRKs"].Cast<CheckBox>().CurrentValue;
+            bool useItems = LeeSinMenu.config["moonyLee_useItems"].Cast<CheckBox>().CurrentValue;
 
             var target = TargetSelector.GetTarget(1000, DamageType.Magical) ?? TargetSelector.GetTarget(1000, DamageType.Physical);
 
@@ -239,6 +240,13 @@ namespace MoonyLeeKicks
             if (ksR && SpellManager.R.IsReady() && me.Distance(target) <= SpellManager.R.Range &&
                 me.GetSpellDamage(target, SpellSlot.R) > target.Health)
                 SpellManager.R.Cast(target);
+
+            bool hasHydra = Item.HasItem(ItemId.Ravenous_Hydra);
+            bool hasTiamat = Item.HasItem(ItemId.Tiamat);
+            if (useItems && (hasHydra || hasTiamat) && Orbwalker.CanMove && target.Distance(me) <= 400)
+            {
+                Item.UseItem(hasTiamat ? ItemId.Tiamat : ItemId.Ravenous_Hydra);
+            }
         }
     }
 }
