@@ -48,7 +48,7 @@ namespace MoonyLeeKicks
                 if (SmiteableUnits.Any(x => mob.BaseSkinName.Contains(x)))
                 {
                     bool enable =
-                        LeeSinMenu.smiteMenu["useSmite" + SmiteableUnits.First(x => mob.BaseSkinName.Contains(x))]
+                        LeeSinMenu.smiteMenu["useSmite" + SmiteableUnits.FirstOrDefault(x => mob.BaseSkinName.Contains(x))]
                             .Cast<CheckBox>().CurrentValue;
                     if (enable)
                         SpellManager.Smite.Cast(mob);
