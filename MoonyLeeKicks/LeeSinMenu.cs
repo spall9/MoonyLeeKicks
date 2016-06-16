@@ -16,15 +16,17 @@ namespace MoonyLeeKicks
             config.Add("moonyLee_useWGap", new CheckBox("Use W to GapClose"));
             config.Add("moonyLee_useE", new CheckBox("Use E Combo"));
             config.Add("moonyLee_useRKs", new CheckBox("Killsteal R Combo", false));
-            config.Add("moonyLee_useItems", new CheckBox("Use Tiamat/Hydra Combo", false));
+            config.Add("moonyLee_useItems", new CheckBox("Use Tiamat/Hydra Combo"));
             config.AddSeparator();
             config.Add("moonyLee_useQWC", new CheckBox("Use Q WaveClear"));
             config.Add("moonyLee_useWWC", new CheckBox("Use W WaveClear"));
             config.Add("moonyLee_useEWC", new CheckBox("Use E WaveClear"));
+            config.Add("moonyLee_useItemsWC", new CheckBox("Use Tiamat/Hydra WaveClear"));
             config.AddSeparator();
             config.Add("moonyLee_useQJC", new CheckBox("Use Q JungleClear"));
             config.Add("moonyLee_useWJC", new CheckBox("Use W JungleClear"));
             config.Add("moonyLee_useEJC", new CheckBox("Use E JungleClear"));
+            config.Add("moonyLee_useItemsJC", new CheckBox("Use Tiamat/Hydra JungleClear"));
             config.AddSeparator();
             config.Add("moonyLee_useWardJump", new CheckBox("Wardjump in Flee Mode"));
             config.Add("moonyLee_useRKs_General", new CheckBox("Killsteal R if possible", false));

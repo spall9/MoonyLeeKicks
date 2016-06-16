@@ -124,6 +124,8 @@ namespace MoonyLeeKicks
                     SpellManager.E1.Cast(me.Position);
                 if (useE && SpellManager.CanCastE2 && PassiveStacks <= maxPassiveStacks)
                     SpellManager.E2.Cast(me.Position);
+
+                UseItems(LeeSinMenu.config["moonyLee_useItemsJC"].Cast<CheckBox>().CurrentValue, targetMinion);
             }
         }
 
@@ -164,6 +166,8 @@ namespace MoonyLeeKicks
                         SpellManager.E1.Cast(me.Position);
                     if (useE && SpellManager.CanCastE2 && PassiveStacks <= maxPassiveStacks)
                         SpellManager.E2.Cast(me.Position);
+
+                    UseItems(LeeSinMenu.config["moonyLee_useItemsWC"].Cast<CheckBox>().CurrentValue, targetMinion);
                 }
                 catch { }
             }
@@ -241,6 +245,11 @@ namespace MoonyLeeKicks
                 me.GetSpellDamage(target, SpellSlot.R) > target.Health)
                 SpellManager.R.Cast(target);
 
+            UseItems(useItems, target);
+        }
+
+        private static void UseItems(bool useItems, Obj_AI_Base target)
+        {
             bool hasHydra = Item.HasItem(ItemId.Ravenous_Hydra);
             bool hasTiamat = Item.HasItem(ItemId.Tiamat);
             if (useItems && (hasHydra || hasTiamat) && Orbwalker.CanMove && target.Distance(me) <= 400)
