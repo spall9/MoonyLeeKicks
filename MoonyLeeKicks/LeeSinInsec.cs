@@ -16,36 +16,76 @@ namespace MoonyLeeKicks
 {
     internal class LeeSinInsec
     {
+        private static class WardJumpPosition
+        {
+            static float GetSpaceDistToEnemy()
+            {
+                return LeeSinMenu.insecConfig["wardDistanceToTarget"].Cast<Slider>().CurrentValue;
+            }
+            /// <summary>
+            /// op vec
+            /// </summary>
+            static Vector2 PointOnCircle(float radius, float angleInDegrees, Vector2 origin)
+            {
+                float x = origin.X + (float)(radius * System.Math.Cos(angleInDegrees * Math.PI / 180));
+                float y = origin.Y + (float)(radius * System.Math.Sin(angleInDegrees * Math.PI / 180));
+
+                return new Vector2(x, y);
+            }
+
+            public static Vector2 GetWardJumpPosition(Obj_AI_Base ally)
+            {
+                AIHeroClient target = TargetSelector.SelectedTarget;
+                Vector2 wardPlacePos = ally.Position.To2D() + (target.Position.To2D() - ally.Position.To2D()).Normalized() *
+                                   (target.Distance(ally) + GetSpaceDistToEnemy());
+
+                bool hasQBuff = target.HasBuff("BlindMonkQOne");
+                bool attendDash = LeeSinMenu.insecConfig["attendDashes"].Cast<KeyBind>().CurrentValue;
+                bool hasDash = target.HasAntiInsecDashReady();
+                if (hasDash && attendDash && hasQBuff)
+                    wardPlacePos = target.CalculateWardPositionAfterDash(ally, GetSpaceDistToEnemy());
+
+                Vector3 targetPosition = ally.Position +
+                                         (wardPlacePos.To3D() - ally.Position).Normalized()*
+                                         (ally.Distance(wardPlacePos) - GetSpaceDistToEnemy());
+
+                if (LeeSinMenu.multiRMenu["multiREnabledInsec"].Cast<CheckBox>().CurrentValue)
+                {
+                    float leeSinRKickDistance = 700;
+                    float leeSinRKickWidth = 100;
+                    var minREnemies = LeeSinMenu.multiRMenu["targetAmount"].Cast<Slider>().CurrentValue;
+                    int rotationAngle = LeeSinMenu.multiRMenu["rotationAngle"].Cast<Slider>().CurrentValue;
+
+                    Vector2 vecToRotate = wardPlacePos - targetPosition.To2D();
+                    Vector2 op = targetPosition.To2D();
+
+                    for (int currentAngle = -rotationAngle; currentAngle <= rotationAngle; currentAngle++)
+                    {
+                        float stdAngle = vecToRotate.AngleBetween(new Vector2(100, 0));
+                        Vector2 rotatedWardPos = PointOnCircle(vecToRotate.Length(), stdAngle + currentAngle, op);
+                        Vector2 kickEndPos = rotatedWardPos +
+                                             (targetPosition.To2D() - rotatedWardPos).Normalized()*leeSinRKickDistance;
+                        var rect = new Geometry.Polygon.Rectangle(targetPosition.To2D(), kickEndPos, leeSinRKickWidth);
+
+                        if (EntityManager.Heroes.Enemies.Count(x => x.IsValid && rect.IsInside(x)) >= minREnemies)
+                        {
+                            wardPlacePos = rotatedWardPos;
+                            Chat.Print("now");
+                        }
+                    }
+
+                }
+
+                return wardPlacePos;
+            }
+        }
+
         private static Obj_AI_Base ally;
         //TODO: pink ward jump for special champs
 
-        private readonly Menu config;
         private readonly AIHeroClient me = ObjectManager.Player;
-
-        public LeeSinInsec(ref Menu mainMenu)
+        public LeeSinInsec()
         {
-            config = mainMenu.AddSubMenu("MoonyInsec", "LeeSinInsec");
-            config.AddGroupLabel("Insec");
-            config.Add("wardDistanceToTarget",
-                new Slider("Ward distance to enemy", 230, 50, 300));
-            config.Add("attendDashes", new KeyBind("Attend dashes", true, KeyBind.BindTypes.PressToggle));
-            config.AddLabel("Only calculates extra range if target has Q Buff. Ignores if jumps over minions");
-
-            config.AddSeparator(10);
-            config.Add("_insecKey", new KeyBind("LeeSinInsec Key", false, KeyBind.BindTypes.HoldActive));
-            config.Add("moonSec", new CheckBox("Enable MoonSec", false));
-            config.AddLabel("^ For Swag purpose only ^");
-            config.AddSeparator(10);
-            config.AddGroupLabel("Performance");
-            config.Add("smoothFps", new CheckBox("Use Multitasking to prevent FPS-Drops", false));
-            config.Add("smoothFpsBuffer", new Slider("Buffer Tick", 100, 100, 1000));
-            config.AddLabel("Increase this value, if Multitasking is enabled, to gain more Fps");
-            config.Add("smoothFpsMaxTasks", new Slider("Maximum Tasks", 100, 1, 1000));
-            config.AddLabel("Decrease this value, if Multitasking is enabled, to gain more Fps");
-            config.AddSeparator(10);
-            config.AddGroupLabel("Drawings");
-            config.Add("dashDebug", new KeyBind("Draw WardJump Position", false, KeyBind.BindTypes.HoldActive));
-
             Game.OnUpdate += GameOnOnUpdate;
 
             Game.OnWndProc += Game_OnWndProc;
@@ -53,28 +93,27 @@ namespace MoonyLeeKicks
             Drawing.OnDraw += DrawingOnOnDraw;
         }
 
-        private Tuple<Vector2, Vector2> dashDebugTuple;
-        private int lastInsecCallTick = 0;
-        readonly List<Task> InsecTaskList = new List<Task>(); 
+        private int lastInsecCallTick;
+        readonly List<Task> InsecTaskList = new List<Task>();
+
         private void GameOnOnUpdate(EventArgs args)
         {
+            bool targetValid = TargetSelector.SelectedTarget != null && TargetSelector.SelectedTarget.IsValid;
+            bool allyValid = ally != null && ally.IsValid;
+
             InsecTaskList.RemoveAll(x => x.IsCompleted);
 
-            if (ally == null || TargetSelector.SelectedTarget == null)
+            if (!allyValid || !targetValid)
                 return;
 
-            CheckDashDebug();
-
-            bool cantInsec = !ally.IsValid || !TargetSelector.SelectedTarget.IsValid || !config["_insecKey"].Cast<KeyBind>().CurrentValue;
-            if (cantInsec)
+            if (!LeeSinMenu.insecConfig["_insecKey"].Cast<KeyBind>().CurrentValue)
                 return;
 
-            bool canInsec = HasResourcesToInsec();
-            if (canInsec)
+            if (HasResourcesToInsec())
             {
-                bool smoothFps = config["smoothFps"].Cast<CheckBox>().CurrentValue;
-                int smoothBuffer = config["smoothFpsBuffer"].Cast<Slider>().CurrentValue;
-                int maxTasks = config["smoothFpsMaxTasks"].Cast<Slider>().CurrentValue;
+                bool smoothFps = LeeSinMenu.insecConfig["smoothFps"].Cast<CheckBox>().CurrentValue;
+                int smoothBuffer = LeeSinMenu.insecConfig["smoothFpsBuffer"].Cast<Slider>().CurrentValue;
+                int maxTasks = LeeSinMenu.insecConfig["smoothFpsMaxTasks"].Cast<Slider>().CurrentValue;
                 if (smoothFps && InsecTaskList.Count <= maxTasks && Environment.TickCount - lastInsecCallTick >= smoothBuffer)
                 {
                     lastInsecCallTick = Environment.TickCount;
@@ -91,18 +130,6 @@ namespace MoonyLeeKicks
                 }
                 else if (!smoothFps)
                     CheckInsec();
-            }
-        }
-
-        private void CheckDashDebug()
-        {
-            bool dashDebug = config["dashDebug"].Cast<KeyBind>().CurrentValue;
-            if (dashDebug)
-            {
-                var wardPlacePos = ally.Position.To2D() + (TargetSelector.SelectedTarget.Position.To2D() - ally.Position.To2D()).Normalized() *
-                                   (TargetSelector.SelectedTarget.Distance(ally) + GetSpaceDistToEnemy());
-                dashDebugTuple = new Tuple<Vector2, Vector2>(wardPlacePos, TargetSelector.SelectedTarget.HasAntiInsecDashReady() ?
-                    TargetSelector.SelectedTarget.CalculateWardPositionAfterDash(ally, GetSpaceDistToEnemy()) : Vector2.Zero);
             }
         }
 
@@ -126,9 +153,7 @@ namespace MoonyLeeKicks
             if (target == null || !target.IsValid || ally == null || !ally.IsValid)
                 return null;
 
-            var wardPlacePos = ally.Position.To2D() +
-                               (target.Position.To2D() - ally.Position.To2D()).Normalized() *
-                               (target.Distance(ally) + GetSpaceDistToEnemy());
+            var wardPlacePos = WardJumpPosition.GetWardJumpPosition(ally);
             #endregion setVars
 
             foreach (var allyobj in ObjectManager.Get<Obj_AI_Base>().Where(x => 
@@ -145,7 +170,7 @@ namespace MoonyLeeKicks
 
         private void AiHeroClientOnOnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            if (!sender.IsMe || args.Slot != SpellSlot.R || !config["_insecKey"].Cast<KeyBind>().CurrentValue)
+            if (!sender.IsMe || args.Slot != SpellSlot.R || !LeeSinMenu.insecConfig["_insecKey"].Cast<KeyBind>().CurrentValue)
                 return;
 
             if (moonSecActive)
@@ -190,7 +215,7 @@ namespace MoonyLeeKicks
 
             if (ally == null || TargetSelector.SelectedTarget == null || !ally.IsValid || !TargetSelector.SelectedTarget.IsValid)
             {
-                if (config["_insecKey"].Cast<KeyBind>().CurrentValue)
+                if (LeeSinMenu.insecConfig["_insecKey"].Cast<KeyBind>().CurrentValue)
                     DrawFailInfo();
                 return;
             }
@@ -213,14 +238,14 @@ namespace MoonyLeeKicks
                 Drawing.DrawLine(endpos.To3D().WorldToScreen(), arrows[0].To3D().WorldToScreen(), 5, white);
                 Drawing.DrawLine(endpos.To3D().WorldToScreen(), arrows[1].To3D().WorldToScreen(), 5, white);
             }
-            else if (config["_insecKey"].Cast<KeyBind>().CurrentValue)
+            else if (LeeSinMenu.insecConfig["_insecKey"].Cast<KeyBind>().CurrentValue)
                 DrawFailInfo();
 
-            bool dashDebug = config["dashDebug"].Cast<KeyBind>().CurrentValue;
-            if (dashDebug && dashDebugTuple != null)
+            bool dashDebug = LeeSinMenu.insecConfig["dashDebug"].Cast<KeyBind>().CurrentValue;
+            if (dashDebug)
             {
-                new Circle(new ColorBGRA(new Vector4(0, 0, 255, 1)), 70, 4).Draw(dashDebugTuple.Item1.To3D());
-                new Circle(new ColorBGRA(new Vector4(0, 0, 255, 1)), 70, 4).Draw(dashDebugTuple.Item2.To3D());
+                new Circle(new ColorBGRA(new Vector4(0, 0, 255, 1)), 70, 4).Draw(
+                    WardJumpPosition.GetWardJumpPosition(ally).To3D());
             }
         }
 
@@ -245,7 +270,7 @@ namespace MoonyLeeKicks
             catch { }
         }
 
-        private static void Game_OnWndProc(WndEventArgs args)
+        private void Game_OnWndProc(WndEventArgs args)
         {
             if (args.Msg == (uint) WindowMessages.LeftButtonDown)
             {
@@ -357,11 +382,6 @@ namespace MoonyLeeKicks
             return false;
         }
 
-        float GetSpaceDistToEnemy()
-        {
-            return config["wardDistanceToTarget"].Cast<Slider>().CurrentValue;
-        }
-
         private void CheckInsec()
         {
             if (!me.Spellbook.GetSpell(SpellSlot.Q).Name.Contains("One"))
@@ -376,15 +396,8 @@ namespace MoonyLeeKicks
                 var canWardJump = SpellManager.CanCastW1 && me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana &&
                                   WardManager.CanCastWard;
                 var canQ = SpellManager.CanCastQ1;
-                var wardPlacePos = ally.Position.To2D() + (target.Position.To2D() - ally.Position.To2D()).Normalized()*
-                                   (target.Distance(ally) + GetSpaceDistToEnemy());
+            var wardPlacePos = WardJumpPosition.GetWardJumpPosition(ally);
             #endregion setVars
-
-            bool hasQBuff = target.HasBuff("BlindMonkQOne");
-            bool attendDash = config["attendDashes"].Cast<KeyBind>().CurrentValue;
-            bool hasDash = target.HasAntiInsecDashReady();
-            if (hasDash && attendDash && hasQBuff)
-                wardPlacePos = target.CalculateWardPositionAfterDash(ally, GetSpaceDistToEnemy());
 
             /*normal q cast on enemy*/
             var qPred = SpellManager.Q1.GetPrediction(target);
@@ -392,7 +405,7 @@ namespace MoonyLeeKicks
                 SpellManager.Q1.Cast(qPred.CastPosition);
 
             /*try insec if possible*/
-            if (CanMoonSec(target) && config["moonSec"].Cast<CheckBox>().CurrentValue)
+            if (CanMoonSec(target) && LeeSinMenu.insecConfig["moonSec"].Cast<CheckBox>().CurrentValue)
                 return;
             if (moonSecActive)
                 return;

@@ -13,7 +13,6 @@ namespace MoonyLeeKicks
 {
     class Program
     {
-        private static Menu config;
         private static AIHeroClient me = ObjectManager.Player;
 
         public static string PassiveName = "blindmonkpassive_cosmetic";
@@ -32,25 +31,14 @@ namespace MoonyLeeKicks
                 //config = MainMenu.AddMenu("MoonyLeeSin", "MoonyLeeSin");
                 if (ObjectManager.Player.ChampionName == "LeeSin")
                 {
+                    LeeSinMenu.Init();
                     WardManager.Init();
                     SpellManager.Init();
                     ChampionDashes.Init();
 
-                    config = MainMenu.AddMenu("MoonyLeeSin", "__MoonyLeeSin");
-                    config.Add("moonyLee_useQ", new CheckBox("Use Q Combo"));
-                    config.Add("moonyLee_useW", new CheckBox("Use W to GapClose"));
-                    config.Add("moonyLee_useE", new CheckBox("Use E Combo"));
-                    config.AddSeparator();
-                    config.Add("moonyLee_useQWC", new CheckBox("Use Q WaveClear"));
-                    config.Add("moonyLee_useWWC", new CheckBox("Use W WaveClear"));
-                    config.Add("moonyLee_useEWC", new CheckBox("Use E WaveClear"));
-                    config.AddSeparator();
-                    config.Add("moonyLee_useQJC", new CheckBox("Use Q JungleClear"));
-                    config.Add("moonyLee_useWJC", new CheckBox("Use W JungleClear"));
-                    config.Add("moonyLee_useEJC", new CheckBox("Use E JungleClear"));
-                    config.AddSeparator();
-                    config.Add("moonyLee_useWardJump", new CheckBox("Wardjump in Flee Mode"));
-                    new LeeSinInsec(ref config);
+                    new MultiKick();
+                    new LeeSinInsec();
+                    
 
                     Game.OnUpdate += LeeSinOnUpdate;
                 }
@@ -101,9 +89,9 @@ namespace MoonyLeeKicks
 
             if (targetMinion != null && targetMinion.IsValid)
             {
-                bool useQ = config["moonyLee_useQJC"].Cast<CheckBox>().CurrentValue;
-                bool useW = config["moonyLee_useWJC"].Cast<CheckBox>().CurrentValue;
-                bool useE = config["moonyLee_useEJC"].Cast<CheckBox>().CurrentValue;
+                bool useQ = LeeSinMenu.config["moonyLee_useQJC"].Cast<CheckBox>().CurrentValue;
+                bool useW = LeeSinMenu.config["moonyLee_useWJC"].Cast<CheckBox>().CurrentValue;
+                bool useE = LeeSinMenu.config["moonyLee_useEJC"].Cast<CheckBox>().CurrentValue;
 
                 int maxPassiveStacks = me.Level < 6 ? 0 : 1;
                 maxPassiveStacks = me.Level > 15 ? 2 : maxPassiveStacks;
@@ -135,9 +123,9 @@ namespace MoonyLeeKicks
         private static int lastWCastWaveClear;
         private static void WaveClear()
         {
-            bool useQ = config["moonyLee_useQWC"].Cast<CheckBox>().CurrentValue;
-            bool useW = config["moonyLee_useQWC"].Cast<CheckBox>().CurrentValue;
-            bool useE = config["moonyLee_useQWC"].Cast<CheckBox>().CurrentValue;
+            bool useQ = LeeSinMenu.config["moonyLee_useQWC"].Cast<CheckBox>().CurrentValue;
+            bool useW = LeeSinMenu.config["moonyLee_useQWC"].Cast<CheckBox>().CurrentValue;
+            bool useE = LeeSinMenu.config["moonyLee_useQWC"].Cast<CheckBox>().CurrentValue;
 
             var targetMinion =
                 EntityManager.MinionsAndMonsters.EnemyMinions.Where(x => x.Distance(me) <= 500 && x.IsValid).OrderByDescending(x => x.Health).FirstOrDefault();
@@ -183,7 +171,7 @@ namespace MoonyLeeKicks
             bool allyobjValid = allyobj != null && allyobj.IsValid;
             bool canWard = WardManager.CanCastWard;
             bool enoughMana = me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana;
-            bool doWardJump = config["moonyLee_useWardJump"].Cast<CheckBox>().CurrentValue;
+            bool doWardJump = LeeSinMenu.config["moonyLee_useWardJump"].Cast<CheckBox>().CurrentValue;
 
             if (canWard && enoughMana && doWardJump && !allyobjValid)
             {
@@ -198,15 +186,15 @@ namespace MoonyLeeKicks
 
         private static void Combo()
         {
-            bool useQ = config["moonyLee_useQ"].Cast<CheckBox>().CurrentValue;
-            bool useW = config["moonyLee_useW"].Cast<CheckBox>().CurrentValue;
-            bool useE = config["moonyLee_useE"].Cast<CheckBox>().CurrentValue;
+            bool useQ = LeeSinMenu.config["moonyLee_useQ"].Cast<CheckBox>().CurrentValue;
+            bool useW = LeeSinMenu.config["moonyLee_useW"].Cast<CheckBox>().CurrentValue;
+            bool useE = LeeSinMenu.config["moonyLee_useE"].Cast<CheckBox>().CurrentValue;
 
 
             var target = TargetSelector.SelectedTarget ?? TargetSelector.GetTarget(1000, DamageType.Magical) ??
                          TargetSelector.GetTarget(1000, DamageType.Physical);
 
-            if (target == null || !target.IsValid)
+            if (target == null || !target.IsValid || target.IsDead)
                 return;
 
             if (useQ && SpellManager.CanCastQ1 && Orbwalker.CanMove)
