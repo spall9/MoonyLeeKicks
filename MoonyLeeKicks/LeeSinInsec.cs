@@ -91,15 +91,11 @@ namespace MoonyLeeKicks
             Drawing.OnDraw += DrawingOnOnDraw;
         }
 
-        private int lastInsecCallTick;
-        readonly List<Task> InsecTaskList = new List<Task>();
-
+        private int lastInsecCheckTick;
         private void GameOnOnUpdate(EventArgs args)
         {
             bool targetValid = TargetSelector.SelectedTarget != null && TargetSelector.SelectedTarget.IsValid;
             bool allyValid = ally != null && ally.IsValid;
-
-            InsecTaskList.RemoveAll(x => x.IsCompleted);
 
             if (!allyValid || !targetValid)
                 return;
@@ -107,27 +103,11 @@ namespace MoonyLeeKicks
             if (!LeeSinMenu.insecConfig["_insecKey"].Cast<KeyBind>().CurrentValue)
                 return;
 
-            if (HasResourcesToInsec())
+            int updateFrequency = LeeSinMenu.insecConfig["insecFrequency"].Cast<Slider>().CurrentValue;
+            if (HasResourcesToInsec() && Environment.TickCount - lastInsecCheckTick >= updateFrequency)
             {
-                bool smoothFps = LeeSinMenu.insecConfig["smoothFps"].Cast<CheckBox>().CurrentValue;
-                int smoothBuffer = LeeSinMenu.insecConfig["smoothFpsBuffer"].Cast<Slider>().CurrentValue;
-                int maxTasks = LeeSinMenu.insecConfig["smoothFpsMaxTasks"].Cast<Slider>().CurrentValue;
-                if (smoothFps && InsecTaskList.Count <= maxTasks && Environment.TickCount - lastInsecCallTick >= smoothBuffer)
-                {
-                    lastInsecCallTick = Environment.TickCount;
-                    try
-                    {
-                        var t = Task.Factory.StartNew(() =>
-                        {
-                            try { CheckInsec(); } catch { }
-                        });
-                        InsecTaskList.Add(t);
-                    }
-                    catch { }
-                    
-                }
-                else if (!smoothFps)
-                    CheckInsec();
+                lastInsecCheckTick = Environment.TickCount;
+                CheckInsec();
             }
         }
 

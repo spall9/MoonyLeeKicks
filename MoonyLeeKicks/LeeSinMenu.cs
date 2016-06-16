@@ -8,7 +8,6 @@ namespace MoonyLeeKicks
         public static Menu config;
         public static Menu insecConfig;
         public static Menu multiRMenu;
-        public static Menu smiteMenu;
         public static void Init()
         {
             config = MainMenu.AddMenu("MoonyLeeSin", "__MoonyLeeSin");
@@ -33,6 +32,8 @@ namespace MoonyLeeKicks
 
             insecConfig = config.AddSubMenu("MoonyInsec", "LeeSinInsec");
             insecConfig.AddGroupLabel("Insec");
+            insecConfig.Add("insecFrequency", new Slider("Update Frequency in ms", 0, 0, 500));
+            insecConfig.AddLabel("Inscrease to get more fps");
             insecConfig.Add("wardDistanceToTarget",
                 new Slider("Ward distance to enemy", 230, 50, 300));
             insecConfig.Add("attendDashes", new KeyBind("Attend dashes", true, KeyBind.BindTypes.PressToggle));
@@ -42,13 +43,6 @@ namespace MoonyLeeKicks
             insecConfig.Add("_insecKey", new KeyBind("LeeSinInsec Key", false, KeyBind.BindTypes.HoldActive));
             insecConfig.Add("moonSec", new CheckBox("Enable MoonSec", false));
             insecConfig.AddLabel("^ For Swag purpose only ^");
-            insecConfig.AddSeparator(10);
-            insecConfig.AddGroupLabel("Performance");
-            insecConfig.Add("smoothFps", new CheckBox("Use Multitasking to prevent FPS-Drops", false));
-            insecConfig.Add("smoothFpsBuffer", new Slider("Buffer Tick", 100, 100, 1000));
-            insecConfig.AddLabel("Increase this value, if Multitasking is enabled, to gain more Fps");
-            insecConfig.Add("smoothFpsMaxTasks", new Slider("Maximum Tasks", 100, 1, 1000));
-            insecConfig.AddLabel("Decrease this value, if Multitasking is enabled, to gain more Fps");
             insecConfig.AddSeparator(10);
             insecConfig.AddGroupLabel("Drawings");
             insecConfig.Add("dashDebug", new KeyBind("Draw WardJump Position", false, KeyBind.BindTypes.HoldActive));
