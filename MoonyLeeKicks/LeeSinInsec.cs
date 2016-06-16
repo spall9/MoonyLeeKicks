@@ -70,7 +70,6 @@ namespace MoonyLeeKicks
                         if (EntityManager.Heroes.Enemies.Count(x => x.IsValid && rect.IsInside(x)) >= minREnemies)
                         {
                             wardPlacePos = rotatedWardPos;
-                            Chat.Print("now");
                         }
                     }
 
