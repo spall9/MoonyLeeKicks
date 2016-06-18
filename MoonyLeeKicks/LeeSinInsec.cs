@@ -61,7 +61,7 @@ namespace MoonyLeeKicks
                     {
                         float stdAngle = vecToRotate.AngleBetween(new Vector2(100, 0));
                         Vector2 rotatedWardPos = PointOnCircle(vecToRotate.Length(), stdAngle + currentAngle, op);
-                        Vector2 kickEndPos = rotatedWardPos +
+                        Vector2 kickEndPos = targetPosition.To2D() +
                                              (targetPosition.To2D() - rotatedWardPos).Normalized()*leeSinRKickDistance;
                         var rect = new Geometry.Polygon.Rectangle(targetPosition.To2D(), kickEndPos, leeSinRKickWidth);
 
