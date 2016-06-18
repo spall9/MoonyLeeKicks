@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Threading.Tasks;
 using EloBuddy;
 using EloBuddy.SDK;
 using EloBuddy.SDK.Enumerations;
@@ -79,6 +78,11 @@ namespace MoonyLeeKicks
         }
 
         private static Obj_AI_Base ally;
+        /// <summary>
+        /// 2 activations
+        /// </summary>
+        private static int minEnergy = 80;
+        private static int minEnegeryFirstActivation = 50;
         //TODO: pink ward jump for special champs
 
         private readonly AIHeroClient me = ObjectManager.Player;
@@ -113,13 +117,8 @@ namespace MoonyLeeKicks
 
         private bool HasResourcesToInsec()
         {
-            float minMana = !SpellManager.FlashReady
-                                ? me.Spellbook.GetSpell(SpellSlot.Q).SData.Mana +
-                                  me.Spellbook.GetSpell(SpellSlot.W).SData.Mana
-                                : me.Spellbook.GetSpell(SpellSlot.Q).SData.Mana;
-
             bool canJump = SpellManager.CanCastW1 || SpellManager.FlashReady || (GetAllyAsWard() != null && GetAllyAsWard().IsValid);
-            bool canInsec = canJump && SpellManager.R.IsReady() && me.Mana >= minMana;
+            bool canInsec = canJump && SpellManager.R.IsReady();
             return canInsec;
         }
 
@@ -267,7 +266,7 @@ namespace MoonyLeeKicks
             var allyJump = GetAllyAsWard();
             var allyJumpValid = allyJump != null && allyJump.IsValid;
             var canWardJump = (WardManager.CanCastWard || allyJumpValid) && SpellManager.CanCastW1 &&
-                me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana;
+                me.Mana >= minEnegeryFirstActivation;
             float maxDist = WardManager.CanCastWard ? WardManager.WardRange : SpellManager.W1.Range;
 
             if (me.Distance(wardPlacePos) <= maxDist && canWardJump)
@@ -286,9 +285,10 @@ namespace MoonyLeeKicks
 
         private bool CanFlashKick(Vector2 wardPlacePos, AIHeroClient target)
         {
+            bool cantWardKick = !CanWardKick(wardPlacePos, target);
             var canFlash = SpellManager.FlashReady;
 
-            if (me.Distance(wardPlacePos) <= SpellManager.Flash.Range && canFlash)
+            if (me.Distance(wardPlacePos) <= SpellManager.Flash.Range && canFlash && cantWardKick)
             {
                 SpellManager.Flash.Cast(wardPlacePos.To3D());
                 Core.RepeatAction(() => SpellManager.R.Cast(target), 150, 1500);
@@ -304,12 +304,13 @@ namespace MoonyLeeKicks
             var allyJump = GetAllyAsWard();
             var allyJumpValid = allyJump != null && allyJump.IsValid;
             var canWardJump = (WardManager.CanCastWard || allyJumpValid) &&
-                                me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana;
-            float maxWardJumpDist = allyJump == null ? WardManager.WardRange : SpellManager.W1.Range;
+                                me.Mana >= minEnegeryFirstActivation;
+            float maxWardJumpDist = !allyJumpValid ? WardManager.WardRange : SpellManager.W1.Range;
 
             var canFlash = SpellManager.FlashReady;
 
-            bool inRange = me.Distance(wardPlacePos) <= SpellManager.Flash.Range + maxWardJumpDist;
+            bool inRange = me.Distance(wardPlacePos) <= SpellManager.Flash.Range + maxWardJumpDist && 
+                me.Distance(wardPlacePos) > SpellManager.Flash.Range && me.Distance(wardPlacePos) > maxWardJumpDist;
 
 
             bool q1Casted = SpellManager.CanCastQ2;
@@ -340,7 +341,7 @@ namespace MoonyLeeKicks
             var wardPlacePos = ally.Position.To2D() + (target.Position.To2D() - ally.Position.To2D());
 
             var canFlash = SpellManager.FlashReady;
-            var canWardJump = SpellManager.CanCastW1 && me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana &&
+            var canWardJump = SpellManager.CanCastW1 && me.Mana >= minEnegeryFirstActivation &&
                               WardManager.CanCastWard;
 
             if (me.Distance(wardPlacePos) <= WardManager.WardRange && canWardJump && canFlash)
@@ -371,9 +372,9 @@ namespace MoonyLeeKicks
             
 
                 var canFlash = SpellManager.FlashReady;
-                var canWardJump = SpellManager.CanCastW1 && me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana &&
+                var canWardJump = SpellManager.CanCastW1 && me.Mana >= minEnegeryFirstActivation &&
                                   WardManager.CanCastWard;
-                var canQ = SpellManager.CanCastQ1;
+                var canQ = SpellManager.CanCastQ1 && me.Mana >= minEnergy;
             var wardPlacePos = WardJumpPosition.GetWardJumpPosition(ally);
             #endregion setVars
 
@@ -400,14 +401,13 @@ namespace MoonyLeeKicks
                 #region searchMinion
 
                 var minList = new List<Obj_AI_Minion>();
-                float qflyTime;
                 foreach (
                     var minion in
                         EntityManager.MinionsAndMonsters.Combined.Where(
                             x => !x.IsAlly && SpellManager.Q1.GetPrediction(x).CollisionObjects.Length == 0))
                 {
-                    qflyTime = me.Distance(minion)/SpellManager.Q1.Speed*1000 + SpellManager.Q1.CastDelay*2 +
-                               100;
+                    var qflyTime = me.Distance(minion)/SpellManager.Q1.Speed*1000 + SpellManager.Q1.CastDelay*2 +
+                                     100;
                     var alive = Prediction.Health.GetPrediction(minion, (int) Math.Ceiling(qflyTime)) >
                                 me.GetSpellDamage(minion, SpellSlot.Q)*2;
                     if (alive && minion.Distance(me) <= SpellManager.Q1.Range)
