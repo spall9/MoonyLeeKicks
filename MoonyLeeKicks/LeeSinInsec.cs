@@ -299,19 +299,17 @@ namespace MoonyLeeKicks
             return false;
         }
 
-        private bool CanWardFlashKick(Vector2 wardPlacePos)
+        private bool CanWardFlashKick(Vector2 wardPlacePos, AIHeroClient target)
         {
             var allyJump = GetAllyAsWard();
             var allyJumpValid = allyJump != null && allyJump.IsValid;
+            var canFlash = SpellManager.FlashReady;
             var canWardJump = (WardManager.CanCastWard || allyJumpValid) &&
                                 me.Mana >= minEnegeryFirstActivation;
             float maxWardJumpDist = !allyJumpValid ? WardManager.WardRange : SpellManager.W1.Range;
+            
 
-            var canFlash = SpellManager.FlashReady;
-
-            bool inRange = me.Distance(wardPlacePos) <= SpellManager.Flash.Range + maxWardJumpDist && 
-                me.Distance(wardPlacePos) > SpellManager.Flash.Range && me.Distance(wardPlacePos) > maxWardJumpDist;
-
+            bool inRange = me.Distance(wardPlacePos) <= SpellManager.Flash.Range + maxWardJumpDist;
 
             bool q1Casted = SpellManager.CanCastQ2;
             float distQTargetToWardPos =
@@ -323,7 +321,8 @@ namespace MoonyLeeKicks
 
             bool dontNeedFlash = q1Casted && distQTargetToWardPos <= maxRange && canWardJump;
 
-            if (inRange && canWardJump && canFlash && !dontNeedFlash)
+            if (inRange && canWardJump && canFlash && !dontNeedFlash && 
+                !CanWardKick(wardPlacePos, target) && !CanFlashKick(wardPlacePos, target))
             {
                 if (WardManager.CanCastWard)
                     WardManager.CastWardTo(wardPlacePos.To3D());
@@ -393,7 +392,7 @@ namespace MoonyLeeKicks
                 return;
             if (CanFlashKick(wardPlacePos, target))
                 return;
-            if (CanWardFlashKick(wardPlacePos))
+            if (CanWardFlashKick(wardPlacePos, target))
                 return;
 
             if (canQ)
