@@ -80,7 +80,6 @@ namespace MoonyLeeKicks
         private static class InsecSolution
         {
             static InsecSolutionType lastType = InsecSolutionType.NoSolutionFound;
-            private static Vector2 LastInsecPosition = Vector2.Zero;
 
             /*Ward + Flash is not a solution only, its dicided into 2 parts*/
             public enum InsecSolutionType
@@ -93,7 +92,6 @@ namespace MoonyLeeKicks
             public static void FoundSolution(InsecSolutionType type, Vector2 lastInsecPosition)
             {
                 lastType = type;
-                LastInsecPosition = lastInsecPosition;
             }
 
             public static bool GotASolution
@@ -104,21 +102,11 @@ namespace MoonyLeeKicks
             public static void ResetSolution()
             {
                 lastType = InsecSolutionType.NoSolutionFound;
-                LastInsecPosition = Vector2.Zero;
             }
 
             public static bool CanContinueSearchingFor(InsecSolutionType type)
             {
                 return lastType == InsecSolutionType.NoSolutionFound || lastType == type;
-            }
-
-            public static void OnInsecSolutionFound()
-            {
-                if (LastInsecPosition == Vector2.Zero || lastType == InsecSolutionType.NoSolutionFound)
-                    return;
-
-                if (ObjectManager.Player.Distance(LastInsecPosition) < 50)
-                    SpellManager.R.Cast(TargetSelector.SelectedTarget);
             }
         }
 
@@ -155,7 +143,6 @@ namespace MoonyLeeKicks
         private void GameOnOnUpdate(EventArgs args)
         {
             GetLastQBuffEnemy(); //update
-            InsecSolution.OnInsecSolutionFound();//update
 
             bool targetValid = TargetSelector.SelectedTarget != null && TargetSelector.SelectedTarget.IsValid;
             bool allyValid = ally != null && ally.IsValid;
@@ -337,11 +324,11 @@ namespace MoonyLeeKicks
                     WardManager.CastWardTo(wardPlacePos.To3D());
                 else
                     SpellManager.W1.Cast(allyJump);
-                //Core.RepeatAction(() => SpellManager.R.Cast(target), 350, 1500); 
+                Core.RepeatAction(() => SpellManager.R.Cast(target), 350, 1500); 
             }
         }
 
-        private void CheckFlashKick(Vector2 wardPlacePos)
+        private void CheckFlashKick(Vector2 wardPlacePos, AIHeroClient target)
         {
             var canFlash = SpellManager.FlashReady;
 
@@ -349,7 +336,7 @@ namespace MoonyLeeKicks
             {
                 InsecSolution.FoundSolution(InsecSolution.InsecSolutionType.Flash, wardPlacePos);
                 SpellManager.Flash.Cast(wardPlacePos.To3D());
-                //Core.RepeatAction(() => SpellManager.R.Cast(target), 150, 1500);
+                Core.RepeatAction(() => SpellManager.R.Cast(target), 150, 1500);
             }
         }
 
@@ -459,7 +446,7 @@ namespace MoonyLeeKicks
             if (InsecSolution.CanContinueSearchingFor(InsecSolution.InsecSolutionType.WardJump))
                 CheckWardKick(wardPlacePos, target);
             if (InsecSolution.CanContinueSearchingFor(InsecSolution.InsecSolutionType.Flash))
-                CheckFlashKick(wardPlacePos);
+                CheckFlashKick(wardPlacePos, target);
 
             CanWardFlashKick(wardPlacePos);
 
