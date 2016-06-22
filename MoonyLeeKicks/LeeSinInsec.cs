@@ -336,8 +336,9 @@ namespace MoonyLeeKicks
             {
                 InsecSolution.FoundSolution(InsecSolution.InsecSolutionType.Flash);
                 SpellManager.Flash.Cast(wardPlacePos.To3D());
+                 Core.RepeatAction(() => SpellManager.R.Cast(target), 150, 1500);
             }
-            Core.RepeatAction(() => SpellManager.R.Cast(target), 150, 1500);
+            
         }
 
         private static AIHeroClient lastEnemyWithQBuff;
