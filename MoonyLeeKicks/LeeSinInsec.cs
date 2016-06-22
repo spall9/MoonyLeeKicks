@@ -378,7 +378,7 @@ namespace MoonyLeeKicks
             if (maxRange > 0 && allyJumpValid) maxRange = SpellManager.W1.Range;
 
             bool dontNeedFlash = distQTargetToWardPos <= maxRange && canWardJump;
-            bool waitForQFirst = SpellManager.CanCastQ1 && me.Mana >= minEnergy &&
+            bool waitForQFirst = SpellManager.CanCastQ1 && /*me.Mana >= minEnergy &&*/
                                     LeeSinMenu.insecConfig["waitForQBefore_WardFlashKick"].Cast<CheckBox>().CurrentValue;
             if (inRange && canWardJump && canFlash && !dontNeedFlash && !InsecSolution.GotASolution &&
                 !waitForQFirst)
