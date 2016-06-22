@@ -40,8 +40,12 @@ namespace MoonyLeeKicks
             insecConfig.AddLabel("Inscrease to get more fps");
             insecConfig.Add("wardDistanceToTarget",
                 new Slider("Ward distance to enemy", 230, 50, 300));
+            insecConfig.AddSeparator(10);
             insecConfig.Add("attendDashes", new KeyBind("Attend dashes", true, KeyBind.BindTypes.PressToggle));
             insecConfig.AddLabel("Only calculates extra range if target has Q Buff. Ignores if jumps over minions");
+            insecConfig.Add("waitForQBefore_WardFlashKick",
+                new CheckBox("Reduce Flash usage / don't do instant insec", false));
+            insecConfig.AddLabel("Wait for using Q before instant do Ward->Flash->Kick");
 
             insecConfig.AddSeparator(10);
             insecConfig.Add("_insecKey", new KeyBind("LeeSinInsec Key", false, KeyBind.BindTypes.HoldActive));

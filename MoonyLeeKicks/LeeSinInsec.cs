@@ -358,7 +358,7 @@ namespace MoonyLeeKicks
             return lastEnemyWithQBuff;
         }
 
-        private void CanWardFlashKick(Vector2 wardPlacePos)
+        private void CheckWardFlashKick(Vector2 wardPlacePos, AIHeroClient target)
         {
             var allyJump = GetAllyAsWard();
             var allyJumpValid = allyJump != null && allyJump.IsValid;
@@ -369,15 +369,19 @@ namespace MoonyLeeKicks
             
 
             bool inRange = me.Distance(wardPlacePos) <= SpellManager.Flash.Range + maxWardJumpDist;
-
             
 
-            float distQTargetToWardPos = GetLastQBuffEnemy() != null ? GetLastQBuffEnemy().Distance(wardPlacePos) : float.MaxValue;
+
+            float distQTargetToWardPos = GetLastQBuffEnemy() != null ? 
+                GetLastQBuffEnemy().Distance(wardPlacePos) : float.MaxValue;
             float maxRange = canWardJump ? 600 : 425;
             if (maxRange > 0 && allyJumpValid) maxRange = SpellManager.W1.Range;
 
             bool dontNeedFlash = distQTargetToWardPos <= maxRange && canWardJump;
-            if (inRange && canWardJump && canFlash && !dontNeedFlash && !InsecSolution.GotASolution)
+            bool waitForQFirst = SpellManager.CanCastQ1 && me.Mana >= minEnergy &&
+                                    LeeSinMenu.insecConfig["waitForQBefore_WardFlashKick"].Cast<CheckBox>().CurrentValue;
+            if (inRange && canWardJump && canFlash && !dontNeedFlash && !InsecSolution.GotASolution &&
+                !waitForQFirst)
             {
                 if (WardManager.CanCastWard)
                     WardManager.CastWardTo(wardPlacePos.To3D());
@@ -449,7 +453,7 @@ namespace MoonyLeeKicks
             if (InsecSolution.CanContinueSearchingFor(InsecSolution.InsecSolutionType.Flash))
                 CheckFlashKick(wardPlacePos, target);
 
-            CanWardFlashKick(wardPlacePos);
+            CheckWardFlashKick(wardPlacePos, target);
 
             if (canQ && !InsecSolution.GotASolution)
             {
