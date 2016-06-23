@@ -39,7 +39,7 @@ namespace MoonyLeeKicks
             insecConfig.Add("insecFrequency", new Slider("Update delay in ms", 0, 0, 500));
             insecConfig.AddLabel("Inscrease to get more fps");
             insecConfig.Add("wardDistanceToTarget",
-                new Slider("Ward distance to enemy", 300, 50, 300));
+                new Slider("Ward distance to enemy", 300, 200, 300));
             insecConfig.AddSeparator(10);
             insecConfig.Add("attendDashes", new KeyBind("Attend dashes", true, KeyBind.BindTypes.PressToggle));
             insecConfig.AddLabel("Only calculates extra range if target has Q Buff. Ignores if jumps over minions");
