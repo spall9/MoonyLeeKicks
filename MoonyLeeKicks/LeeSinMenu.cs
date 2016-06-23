@@ -60,7 +60,7 @@ namespace MoonyLeeKicks
             multiRMenu.Add("targetAmount", new Slider("Minimum targets", 2, 2, 5));
             multiRMenu.AddGroupLabel("Insec");
             multiRMenu.Add("multiREnabledInsec", new CheckBox("Enable in InsecMode"));
-            multiRMenu.Add("rotationAngle", new Slider("Kick angle [in Degrees]", 40, 0, 90));
+            multiRMenu.Add("rotationAngle", new Slider("Kick angle [in Degrees]", 30, 0, 90));
             multiRMenu.AddLabel("45° => The Addon is allowed to kick up to 45° sidewards during the insec if multiple targets get hit");
         }
     }
