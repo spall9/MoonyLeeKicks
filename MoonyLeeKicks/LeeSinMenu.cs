@@ -44,8 +44,11 @@ namespace MoonyLeeKicks
             insecConfig.Add("attendDashes", new KeyBind("Attend dashes", true, KeyBind.BindTypes.PressToggle));
             insecConfig.AddLabel("Only calculates extra range if target has Q Buff. Ignores if jumps over minions");
             insecConfig.Add("waitForQBefore_WardFlashKick",
-                new CheckBox("Reduce Flash usage / don't do instant insec", false));
+                new CheckBox("Don't do instant insec", false));
             insecConfig.AddLabel("Wait for using Q before instant do Ward->Flash->Kick");
+            insecConfig.Add("correctInsecWithOtherSpells",
+                new CheckBox("Correct insec with other spells like flash"));
+            insecConfig.AddLabel("if your end position behind the enemy is inaccurate");
 
             insecConfig.AddSeparator(10);
             insecConfig.Add("_insecKey", new KeyBind("LeeSinInsec Key", false, KeyBind.BindTypes.HoldActive));

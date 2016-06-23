@@ -324,7 +324,18 @@ namespace MoonyLeeKicks
                     WardManager.CastWardTo(wardPlacePos.To3D());
                 else
                     SpellManager.W1.Cast(allyJump);
-                Core.RepeatAction(() => SpellManager.R.Cast(target), 150, 1500);
+
+                bool useCorrection = LeeSinMenu.insecConfig["correctInsecWithOtherSpells"].Cast<CheckBox>().CurrentValue;
+                Core.RepeatAction(() =>
+                {
+                    if (me.Distance(wardPlacePos) > 80)
+                        return;
+
+                    if (target.Distance(me) <= SpellManager.R.Range)
+                        SpellManager.R.Cast(target);
+                    else if (SpellManager.R.IsReady() && useCorrection)
+                        InsecSolution.ResetSolution();
+                }, 0, 3000);
             }
         }
 
@@ -336,7 +347,18 @@ namespace MoonyLeeKicks
             {
                 InsecSolution.FoundSolution(InsecSolution.InsecSolutionType.Flash);
                 SpellManager.Flash.Cast(wardPlacePos.To3D());
-                 Core.RepeatAction(() => SpellManager.R.Cast(target), 150, 1500);
+
+                bool useCorrection = LeeSinMenu.insecConfig["correctInsecWithOtherSpells"].Cast<CheckBox>().CurrentValue;
+                Core.RepeatAction(() =>
+                {
+                    if (me.Distance(wardPlacePos) > 80)
+                        return;
+
+                    if (target.Distance(me) <= SpellManager.R.Range)
+                        SpellManager.R.Cast(target);
+                    else if (SpellManager.R.IsReady() && useCorrection)
+                        InsecSolution.ResetSolution();
+                }, 0, 3000);
             }
             
         }
@@ -421,7 +443,7 @@ namespace MoonyLeeKicks
 
         private void CheckInsec()
         {
-            if (!me.Spellbook.GetSpell(SpellSlot.Q).Name.Contains("One"))
+            if (!me.Spellbook.GetSpell(SpellSlot.Q).Name.Contains("One") && Game.Time - WardManager._lastWardJumpTime > 1.5f)
                 SpellManager.Q2.Cast();
             Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
 

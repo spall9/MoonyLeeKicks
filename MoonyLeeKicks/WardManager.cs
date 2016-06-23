@@ -24,7 +24,7 @@ namespace MoonyLeeKicks
 
         private static List<Obj_AI_Minion> _wardsAvailable;
         public static Vector3 _lastWardJumpVector = Vector3.Zero;
-        private static float _lastWardJumpTime;
+        public static float _lastWardJumpTime;
         public static float LastWardCreated;
 
         public static bool IsTryingToJump
