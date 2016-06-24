@@ -39,7 +39,7 @@ namespace MoonyLeeKicks
             insecConfig.Add("insecFrequency", new Slider("Update delay in ms", 0, 0, 500));
             insecConfig.AddLabel("Inscrease to get more fps");
             insecConfig.Add("wardDistanceToTarget",
-                new Slider("Ward distance to enemy", 300, 200, 300));
+                new Slider("Ward distance to enemy", 230, 200, 300));
             insecConfig.AddSeparator(10);
             insecConfig.Add("attendDashes", new KeyBind("Attend dashes", true, KeyBind.BindTypes.PressToggle));
             insecConfig.AddLabel("Only calculates extra range if target has Q Buff. Ignores if jumps over minions");
@@ -49,6 +49,8 @@ namespace MoonyLeeKicks
             insecConfig.Add("correctInsecWithOtherSpells",
                 new CheckBox("Correct insec with other spells like flash"));
             insecConfig.AddLabel("if your end position behind the enemy is inaccurate");
+            insecConfig.Add("useMovementPrediction", new CheckBox("Use movement prediction"));
+            insecConfig.AddLabel("If the target is running away, the ward distance to it increases");
 
             insecConfig.AddSeparator(10);
             insecConfig.Add("_insecKey", new KeyBind("LeeSinInsec Key", false, KeyBind.BindTypes.HoldActive));

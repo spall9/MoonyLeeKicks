@@ -18,7 +18,17 @@ namespace MoonyLeeKicks
         {
             static float GetSpaceDistToEnemy()
             {
-                return LeeSinMenu.insecConfig["wardDistanceToTarget"].Cast<Slider>().CurrentValue;
+                var target = TargetSelector.SelectedTarget;
+                var predPos = Prediction.Position.PredictUnitPosition(target, 1000);
+                var myDirection = ObjectManager.Player.Position.To2D() + 500 * ObjectManager.Player.Direction.To2D().Perpendicular();
+                var targetDirection = target.Position.To2D() + 500 * target.Direction.To2D().Perpendicular();
+                float angle = (myDirection - ObjectManager.Player.Position.To2D()).AngleBetween(
+                    targetDirection - target.Position.To2D());
+                bool targetRunningAway = angle <= 10 &&
+                    predPos.Distance(ObjectManager.Player.Position) > target.Distance(ObjectManager.Player);
+                bool useMovementPrediction =
+                    LeeSinMenu.insecConfig["useMovementPrediction"].Cast<CheckBox>().CurrentValue;
+                return targetRunningAway && useMovementPrediction ? 300 : LeeSinMenu.insecConfig["wardDistanceToTarget"].Cast<Slider>().CurrentValue;
             }
             /// <summary>
             /// op vec
@@ -118,9 +128,10 @@ namespace MoonyLeeKicks
         private static int minEnegeryFirstActivation = 50;
         //TODO: pink ward jump for special champs
 
-        private readonly AIHeroClient me = ObjectManager.Player;
+        private readonly AIHeroClient me;
         public LeeSinInsec()
         {
+            me = ObjectManager.Player;
             Game.OnUpdate += GameOnOnUpdate;
 
             Game.OnWndProc += Game_OnWndProc;
@@ -399,7 +410,7 @@ namespace MoonyLeeKicks
             float maxRange = canWardJump ? 600 : 425;
             if (maxRange > 0 && allyJumpValid) maxRange = SpellManager.W1.Range;
 
-            bool dontNeedFlash = distQTargetToWardPos <= maxRange && canWardJump;
+            bool dontNeedFlash = distQTargetToWardPos <= maxRange;
             bool waitForQFirst = SpellManager.CanCastQ1 && /*me.Mana >= minEnergy &&*/
                                     LeeSinMenu.insecConfig["waitForQBefore_WardFlashKick"].Cast<CheckBox>().CurrentValue;
             if (inRange && canWardJump && canFlash && !dontNeedFlash && !InsecSolution.GotASolution &&
