@@ -6,13 +6,14 @@ using EloBuddy.SDK;
 using EloBuddy.SDK.Enumerations;
 using EloBuddy.SDK.Events;
 using EloBuddy.SDK.Menu.Values;
+using MoonyLeeKicks.UserWishes;
 using SharpDX;
 
 namespace MoonyLeeKicks
 {
     class Program
     {
-        private static AIHeroClient me = ObjectManager.Player;
+        private static AIHeroClient me;
 
         public static string PassiveName = "blindmonkpassive_cosmetic";
         public static int PassiveStacks
@@ -30,11 +31,14 @@ namespace MoonyLeeKicks
                 //config = MainMenu.AddMenu("MoonyLeeSin", "MoonyLeeSin");
                 if (ObjectManager.Player.ChampionName == "LeeSin")
                 {
+                    me = ObjectManager.Player;
                     LeeSinMenu.Init();
+                    SelectionHandler.InitListening();
                     WardManager.Init();
                     SpellManager.Init();
                     ChampionDashes.Init();
 
+                    new StarCombo();
                     new MultiKick();
                     new LeeSinInsec();
                     
@@ -222,7 +226,9 @@ namespace MoonyLeeKicks
             if (SpellManager.CanCastE2 && Orbwalker.CanMove)
                 SpellManager.E2.Cast(me.Position);
 
-            if (target.Distance(me) > me.GetAutoAttackRange() && useW)
+            bool canQFly = SpellManager.CanCastQ1 && target.Distance(me) <= 1300;
+            bool justJumpedWithQ = Environment.TickCount - WardManager._lastWardJumpTime <= 750;
+            if (target.Distance(me) > me.GetAutoAttackRange() && useW && !canQFly && !justJumpedWithQ)
             {
                 //w gap
                 bool canWard = WardManager.CanCastWard;

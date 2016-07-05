@@ -24,7 +24,7 @@ namespace MoonyLeeKicks
                 return;
 
             foreach (var enemy in EntityManager.Heroes.Enemies.Where(x => x.IsValid && 
-            x.Distance(ObjectManager.Player) <= SpellManager.R.Range))
+                x.Distance(ObjectManager.Player) <= SpellManager.R.Range))
             {
                 var startPos = enemy.ServerPosition;
                 var endPos = ObjectManager.Player.ServerPosition.Extend(

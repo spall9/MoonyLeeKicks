@@ -35,14 +35,14 @@ namespace MoonyLeeKicks
             }
         }
 
-        public static Vector2 CalculateWardPositionAfterDash(this AIHeroClient target, Obj_AI_Base SelectedAlly,
+        public static Vector2 CalculateWardPositionAfterDash(this AIHeroClient target, Vector2 SelectedAllyPos,
             float normalDistance)
         {
             var dashInfo = DashInfos.FirstOrDefault(x => x.ChampionName == target.ChampionName);
             if (dashInfo == null)
                 return Vector2.Zero;
 
-            return dashInfo.CalculateNewWardPosition(SelectedAlly, normalDistance);
+            return dashInfo.CalculateNewWardPosition(SelectedAllyPos, normalDistance);
         }
 
         public static void Init()
@@ -106,23 +106,18 @@ namespace MoonyLeeKicks
         /// <summary>
         /// Take Dash in count
         /// </summary>
-        /// <param name="SelectedAlly"></param>
-        /// <param name="normalDistance"></param>
-        /// <returns></returns>
-        public Vector2 CalculateNewWardPosition(Obj_AI_Base SelectedAlly, float normalDistance)
+        public Vector2 CalculateNewWardPosition(Vector2 SelectedAllyPos, float normalDistance)
         {
             var me = ObjectManager.Player;
             var target = EntityManager.Heroes.Enemies.FirstOrDefault(x => x.ChampionName == ChampionName);
-            if (target == null || !target.IsValid || SelectedAlly == null || !SelectedAlly.IsValid)
-                return Vector2.Zero;
 
             Vector2 meTarget = target.Position.To2D() - me.Position.To2D();
             float meTargetDist = me.Distance(target);
             Vector2 dashEndPosOP = me.Position.To2D() + meTarget.Normalized()*(meTargetDist + DashDistance);
 
-            Vector2 allyDashEndPos = dashEndPosOP - SelectedAlly.Position.To2D();
-            float allyDashEndPos_Distance = SelectedAlly.Distance(dashEndPosOP);
-            Vector2 wardPos = SelectedAlly.Position.To2D() +
+            Vector2 allyDashEndPos = dashEndPosOP - SelectedAllyPos;
+            float allyDashEndPos_Distance = SelectedAllyPos.Distance(dashEndPosOP);
+            Vector2 wardPos = SelectedAllyPos +
                               allyDashEndPos.Normalized()*(allyDashEndPos_Distance + normalDistance);
             return wardPos;
         }

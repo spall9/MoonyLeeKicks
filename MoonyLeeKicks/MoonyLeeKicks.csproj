@@ -52,13 +52,15 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DashInfo.cs" />
-    <Compile Include="LeeSinInsec.cs" />
+    <Compile Include="Insec\DashInfo.cs" />
+    <Compile Include="Insec\LeeSinInsec.cs" />
     <Compile Include="LeeSinMenu.cs" />
     <Compile Include="MultiKick.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SpellManager.cs" />
+    <Compile Include="Insec\SelectionHandler.cs" />
+    <Compile Include="UserWishes\StarCombo.cs" />
     <Compile Include="WardManager.cs" />
   </ItemGroup>
   <ItemGroup>
