@@ -39,6 +39,7 @@ namespace MoonyLeeKicks
                     ChampionDashes.Init();
 
                     new StarCombo();
+                    new BubbaKush();
                     new MultiKick();
                     new LeeSinInsec();
                     

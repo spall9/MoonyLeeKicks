@@ -101,8 +101,6 @@ namespace MoonyLeeKicks.UserWishes
             }
         }
 
-        Vector2 LastJumpPos;
-        Vector2 LastBlinkPos;
         private bool canWardJump => WardManager.CanWardJump;
         private bool canFlash = SpellManager.FlashReady;
 
@@ -119,7 +117,6 @@ namespace MoonyLeeKicks.UserWishes
             }
         }
 
-        private AIHeroClient LastJumpAlly;
         bool canAllyJump
         {
             get
@@ -151,7 +148,7 @@ namespace MoonyLeeKicks.UserWishes
         /// <returns></returns>
         Vector2 GetJumpPos(bool wardJumping, bool predictPos = false)
         {
-            float maxDist = wardJumping ? SpellManager.W1.Range : SpellManager.Flash.Range;
+            float maxDist = wardJumping ? WardManager.WardRange : SpellManager.Flash.Range;
 
             Vector2 targetPos = target.Position.To2D();
             if (predictPos)
@@ -206,21 +203,21 @@ namespace MoonyLeeKicks.UserWishes
 
             if (!hasResources)
             {
-                if (solution == StarSolutions.None)
-                {
-                    if (!SpellManager.R.IsReady())
-                        errorString = "R not ready";
-                    else if ((!WardManager.CanCastWard || !SpellManager.FlashReady) && !canAllyJump)
-                        errorString = "Cannot dash";
-                    else if (canAllyJump && (!SpellManager.CanCastW1 || me.Mana < 50))
-                        errorString = "Cannot jump to ally";
-                }
-                else //solution found but all resources not available anymore because they got casted
-                    errorString = string.Empty;
+                if (!SpellManager.R.IsReady())
+                    errorString = "R not ready";
+                else if ((!WardManager.CanCastWard || !SpellManager.FlashReady) && !canAllyJump)
+                    errorString = "Cannot dash";
+                else if (canAllyJump && (!SpellManager.CanCastW1 || me.Mana < 50))
+                    errorString = "Cannot jump to ally";
+
                 return;
             }
-            else
-                errorString = string.Empty;
+            else if (!SelectionHandler.LastTargetValid)
+            {
+                errorString = "Target not selected";
+                return;
+            }
+            else errorString = string.Empty;
 
             Orbwalker.OrbwalkTo(Game.CursorPos);
 
@@ -245,7 +242,6 @@ namespace MoonyLeeKicks.UserWishes
                             .OrderBy(x => x.Distance(target))
                             .First();
                     SpellManager.W1.Cast(ally);
-                    LastJumpAlly = ally;
                 }
 
                 if (target.Distance(me) <= SpellManager.R.Range)
@@ -259,7 +255,6 @@ namespace MoonyLeeKicks.UserWishes
                 {
                     var jumpPos = GetJumpPos(true, Enabled(MenuEntry.MovementPrediction)).To3D();
                     WardManager.CastWardTo(jumpPos);
-                    LastJumpPos = target.Position.To2D();
                 }
 
                 if (target.Distance(me) <= SpellManager.R.Range)
@@ -272,7 +267,6 @@ namespace MoonyLeeKicks.UserWishes
                 if (canFlash)
                 {
                     SpellManager.Flash.Cast(GetJumpPos(false).To3D());
-                    LastBlinkPos = target.Position.To2D();
                 }
 
                 if (target.Distance(me) <= SpellManager.R.Range)

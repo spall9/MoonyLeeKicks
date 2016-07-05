@@ -94,7 +94,10 @@ namespace MoonyLeeKicks
 
             userMenu.AddSeparator();
             userMenu.AddGroupLabel("Bubba kush");
-            userMenu.Add("bubbaKey", new KeyBind("Bubba kush (soon tm)", false, KeyBind.BindTypes.HoldActive));
+            userMenu.Add("bubbaKey", new KeyBind("Bubba kush", false, KeyBind.BindTypes.HoldActive));
+            userMenu.Add("useAlliesBubba", new CheckBox("Use allies"));
+            userMenu.Add("useMovementPredictionBubba1", new CheckBox("Use movement prediction for target"));
+            userMenu.Add("useMovementPredictionBubba2", new CheckBox("Use movement prediction for rest enemies"));
 
             guideMenu = config.AddSubMenu("Help", "helpMenu");
             guideMenu.AddGroupLabel("How to insec");

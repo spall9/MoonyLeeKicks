@@ -60,6 +60,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SpellManager.cs" />
     <Compile Include="Insec\SelectionHandler.cs" />
+    <Compile Include="UserWishes\BubbaKush.cs" />
     <Compile Include="UserWishes\StarCombo.cs" />
     <Compile Include="WardManager.cs" />
   </ItemGroup>
