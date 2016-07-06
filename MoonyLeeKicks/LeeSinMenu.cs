@@ -13,6 +13,7 @@ namespace MoonyLeeKicks
         public static void Init()
         {
             config = MainMenu.AddMenu("MoonyLeeSin", "__MoonyLeeSin");
+            config.Add("unloadExtensions", new CheckBox("Dont load User extensions (reload addon)", false));
             config.AddGroupLabel("Combo");
             config.Add("moonyLee_useQ", new CheckBox("Use Q Combo"));
             config.Add("moonyLee_useWGap", new CheckBox("Use W to GapClose Combo"));

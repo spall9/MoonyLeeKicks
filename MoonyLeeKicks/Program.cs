@@ -38,8 +38,11 @@ namespace MoonyLeeKicks
                     SpellManager.Init();
                     ChampionDashes.Init();
 
-                    new StarCombo();
-                    new BubbaKush();
+                    if (!LeeSinMenu.config["unloadExtensions"].Cast<CheckBox>().CurrentValue)
+                    {
+                        new StarCombo();
+                        new BubbaKush();
+                    }
                     new MultiKick();
                     new LeeSinInsec();
                     
