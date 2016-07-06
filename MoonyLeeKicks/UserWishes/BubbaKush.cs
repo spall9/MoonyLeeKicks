@@ -10,6 +10,25 @@ using SharpDX;
 
 namespace MoonyLeeKicks.UserWishes
 {
+    public static class PolygonExtensions
+    {
+        public static Geometry.Polygon GetDetailedPolygon(this Geometry.Polygon.Rectangle p)
+        {
+            Geometry.Polygon detailedRectangle = new Geometry.Polygon();
+            for (int i = 0; i < p.Points.Count - 1; i++)
+            {
+                var point = p.Points[i];
+                var nextPoint = p.Points[i + 1];
+
+                for (float scaling = 1; scaling >= 0; scaling-=0.1f)
+                {
+                    var detailedPoint = point + (nextPoint - point)*scaling;
+                    detailedRectangle.Add(detailedPoint);
+                }
+            }
+            return detailedRectangle;
+        }
+    }
     internal class BubbaKush
     {
         private AIHeroClient me;
@@ -91,6 +110,8 @@ namespace MoonyLeeKicks.UserWishes
                 return;
             }
 
+            Orbwalker.OrbwalkTo(Game.CursorPos);
+
             if (!hasResources && !foundSolution)
             {
                 if (!SpellManager.R.IsReady())
@@ -109,7 +130,6 @@ namespace MoonyLeeKicks.UserWishes
             }
             else errorString = string.Empty;
 
-            Orbwalker.OrbwalkTo(Game.CursorPos);
             CheckWardJump();
 
             if (foundSolution)
@@ -176,10 +196,20 @@ namespace MoonyLeeKicks.UserWishes
             }
         }
 
+        /// <summary>
+        /// returns the distance to the closest edge point of the multi kick rectangle
+        /// </summary>
+        /// <returns></returns>
+        float GetEdgeValue(Geometry.Polygon.Rectangle multiKickRect, Vector2 position)
+        {
+            return multiKickRect.GetDetailedPolygon().Points.OrderBy(x => x.Distance(position)).First().Distance(position);
+        }
+
         Vector2 GetFlashPos()
         {
             var targetPos = target.Position.To2D();
             Vector2 bestPos = Vector2.Zero;
+            bool useBetterCalculations = LeeSinMenu.userMenu["betterCalculationBubba"].Cast<CheckBox>().CurrentValue;
 
             bool predictAllEnemiesPos = LeeSinMenu.userMenu["useMovementPredictionBubba2"].Cast<CheckBox>().CurrentValue;
             IEnumerable<Vector2> enemiesPos = predictAllEnemiesPos
@@ -195,6 +225,7 @@ namespace MoonyLeeKicks.UserWishes
             var minREnemies = 2;
 
             int maxHits = 0;
+            float bestEdgeValue = 0;
 
             Vector2 vecToRotate = new Vector2(200, 0);
             Vector2 op = targetPos;
@@ -205,15 +236,19 @@ namespace MoonyLeeKicks.UserWishes
                 Vector2 rotatedWardPos = PointOnCircle(vecToRotate.Length(), stdAngle + currentAngle, op);
                 Vector2 kickEndPos = targetPos +
                                      (targetPos - rotatedWardPos).Normalized() * leeSinRKickDistance;
-                var rect = new Geometry.Polygon.Rectangle(targetPos, kickEndPos, leeSinRKickWidth);
 
+                var rect = new Geometry.Polygon.Rectangle(targetPos, kickEndPos, leeSinRKickWidth);
                 int hits = enemiesPos.Count(x => rect.IsInside(x));
+                float edgeValue = enemiesPos.Where(x => rect.IsInside(x)).Select(x => GetEdgeValue(rect, x)).Sum();
+
+                bool betterEdgeValue = hits == maxHits && edgeValue > bestEdgeValue && useBetterCalculations;
                 if (hits >= minREnemies && rotatedWardPos.Distance(me) <= SpellManager.Flash.Range)
                 {
-                    if (hits > maxHits)
+                    if (hits > maxHits || betterEdgeValue)
                     {
                         maxHits = hits;
                         bestPos = rotatedWardPos;
+                        bestEdgeValue = edgeValue;
                     }
                 }
             }

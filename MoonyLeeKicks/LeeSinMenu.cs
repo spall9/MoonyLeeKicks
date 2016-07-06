@@ -99,6 +99,9 @@ namespace MoonyLeeKicks
             userMenu.Add("useAlliesBubba", new CheckBox("Use allies"));
             userMenu.Add("useMovementPredictionBubba1", new CheckBox("Use movement prediction for target"));
             userMenu.Add("useMovementPredictionBubba2", new CheckBox("Use movement prediction for rest enemies"));
+            userMenu.AddSeparator(10);
+            userMenu.Add("betterCalculationBubba", new CheckBox("Use more precise calculations"));
+            userMenu.AddLabel("Attends the distance of hitted enemies to the ultimate-rectangle-hitbox edge");
 
             guideMenu = config.AddSubMenu("Help", "helpMenu");
             guideMenu.AddGroupLabel("How to insec");
