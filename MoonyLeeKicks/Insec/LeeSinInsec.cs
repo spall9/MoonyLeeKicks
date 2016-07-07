@@ -397,7 +397,7 @@ namespace MoonyLeeKicks
             if (lastEnemyWithQBuff_object != null && Game.Time >= QbuffEndTime_object)
                 lastEnemyWithQBuff_object = null;
 
-            return lastEnemyWithQBuff_hero;
+            return lastEnemyWithQBuff_object;
         }
 
         private void CheckWardFlashKick(Vector2 wardPlacePos)
