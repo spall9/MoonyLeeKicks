@@ -56,7 +56,7 @@ namespace MoonyLeeKicks
             insecConfig.AddLabel("(Doesn't matter if the q hits)");
             insecConfig.AddSeparator(10);
 
-            insecConfig.Add("WardFlashKickOnlyWithQ", new CheckBox("Only do Ward->Flash->Kick if the Q hit", false));
+            insecConfig.Add("WardFlashKickOnlyWithQ", new CheckBox("Only enable Ward->Flash->Kick if the Q hit", false));
             insecConfig.AddSeparator(10);
 
             insecConfig.Add("correctInsecWithOtherSpells", new CheckBox("Correct insec with other spells like flash"));
