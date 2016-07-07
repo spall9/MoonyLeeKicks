@@ -37,6 +37,9 @@ namespace MoonyLeeKicks
             config.Add("moonyLee_useWardJump", new CheckBox("Wardjump in Flee Mode"));
             config.Add("moonyLee_useRKs_General", new CheckBox("Killsteal R if possible", false));
 
+
+
+
             insecConfig = config.AddSubMenu("MoonyInsec", "LeeSinInsec");
             insecConfig.AddGroupLabel("Insec");
             insecConfig.Add("insecFrequency", new Slider("Update delay in ms", 0, 0, 500));
@@ -46,22 +49,39 @@ namespace MoonyLeeKicks
             insecConfig.AddSeparator(10);
             insecConfig.Add("attendDashes", new KeyBind("Attend dashes", true, KeyBind.BindTypes.PressToggle));
             insecConfig.AddLabel("Only calculates extra range if target has Q Buff. Ignores if jumps over minions");
-            insecConfig.Add("waitForQBefore_WardFlashKick",
-                new CheckBox("Don't do instant insec", false));
+            insecConfig.AddSeparator(10);
+
+            insecConfig.Add("waitForQBefore_WardFlashKick", new CheckBox("Don't do instant insec", false));
             insecConfig.AddLabel("Wait for using Q before instantly do Ward->Flash->Kick");
-            insecConfig.Add("correctInsecWithOtherSpells",
-                new CheckBox("Correct insec with other spells like flash"));
+            insecConfig.AddLabel("(Doesn't matter if the q hits)");
+            insecConfig.AddSeparator(10);
+
+            insecConfig.Add("WardFlashKickOnlyWithQ", new CheckBox("Only do Ward->Flash->Kick if the Q hit", false));
+            insecConfig.AddSeparator(10);
+
+            insecConfig.Add("correctInsecWithOtherSpells", new CheckBox("Correct insec with other spells like flash"));
             insecConfig.AddLabel("If your end position behind the enemy is inaccurate");
+            insecConfig.AddSeparator(10);
+
             insecConfig.Add("useMovementPrediction", new CheckBox("Use movement prediction"));
             insecConfig.AddLabel("If the target is running away, the ward distance to it increases");
-
             insecConfig.AddSeparator(10);
+
+            insecConfig.Add("onlyQ2IfNeeded", new CheckBox("Better Q2 checks"));
+            insecConfig.AddLabel("Checks again if Q2 makes sense or if target is too far");
+            insecConfig.AddSeparator();
+
+
             insecConfig.Add("_insecKey", new KeyBind("LeeSinInsec Key", false, KeyBind.BindTypes.HoldActive));
             insecConfig.Add("moonSec", new CheckBox("Enable MoonSec", false));
             insecConfig.AddLabel("^ For Swag purpose only ^");
-            insecConfig.AddSeparator(10);
+            insecConfig.AddSeparator();
+
             insecConfig.AddGroupLabel("Drawings");
             insecConfig.Add("dashDebug", new KeyBind("Draw WardJump Position (Toggle)", true, KeyBind.BindTypes.PressToggle));
+
+
+
 
             multiRMenu = config.AddSubMenu("Multiple R", "multiRMoonyLeeSin");
             multiRMenu.Add("multiREnabled", new CheckBox("Use In Combo (R only)", false));

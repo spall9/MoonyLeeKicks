@@ -123,6 +123,7 @@ namespace MoonyLeeKicks
         /// </summary>
         private static int minEnergy = 80;
         private static int minEnegeryFirstActivation = 50;
+        private static int LastQ1CastTick;
         //TODO: pink ward jump for special champs
 
         private readonly AIHeroClient me;
@@ -138,18 +139,26 @@ namespace MoonyLeeKicks
 
         private void ObjAiBaseOnOnPlayAnimation(Obj_AI_Base sender, GameObjectPlayAnimationEventArgs args)
         {
-            if (sender.IsMe && args.Animation == "Spell1b" && LeeSinMenu.insecConfig["_insecKey"].Cast<KeyBind>().CurrentValue)
+            if (!sender.IsMe || !LeeSinMenu.insecConfig["_insecKey"].Cast<KeyBind>().CurrentValue)
+                return;
+
+            if (args.Animation == "Spell1b")
             {
                 //Last Q Enemy still valid if it was before
-                if (GetLastQBuffEnemy() != null)
-                    QbuffEndTime += 3;//sec
+                if (GetLastQBuffEnemyHero() != null)
+                    QbuffEndTime_hero += 3;//sec
+                if (GetLastQBuffEnemyObject() != null)
+                    QbuffEndTime_object += 3;//sec
             }
+            if (args.Animation == "Spell1a")
+                LastQ1CastTick = Environment.TickCount;
         }
 
         private int lastInsecCheckTick;
         private void GameOnOnUpdate(EventArgs args)
         {
-            GetLastQBuffEnemy(); //update
+            GetLastQBuffEnemyHero(); //update
+            GetLastQBuffEnemyObject(); //update
 
             if (!LeeSinMenu.insecConfig["_insecKey"].Cast<KeyBind>().CurrentValue)
                 return;
@@ -177,7 +186,7 @@ namespace MoonyLeeKicks
             #region setVars
             var target = SelectionHandler.GetTarget;
 
-            var wardPlacePos = WardJumpPosition.GetWardJumpPosition(allyPos, GetLastQBuffEnemy());
+            var wardPlacePos = WardJumpPosition.GetWardJumpPosition(allyPos, GetLastQBuffEnemyHero());
             #endregion setVars
 
             foreach (var allyobj in ObjectManager.Get<Obj_AI_Base>().Where(x => 
@@ -278,7 +287,7 @@ namespace MoonyLeeKicks
             if (dashDebug)
             {
                 new Circle(new ColorBGRA(new Vector4(0, 0, 255, 1)), 70, 4).Draw(
-                    WardJumpPosition.GetWardJumpPosition(allyPos, GetLastQBuffEnemy()).To3D());
+                    WardJumpPosition.GetWardJumpPosition(allyPos, GetLastQBuffEnemyHero()).To3D());
             }
         }
 
@@ -357,21 +366,38 @@ namespace MoonyLeeKicks
             
         }
 
-        private static AIHeroClient lastEnemyWithQBuff;
-        private static float QbuffEndTime;
-        static AIHeroClient GetLastQBuffEnemy()
+        private static AIHeroClient lastEnemyWithQBuff_hero;
+        private static float QbuffEndTime_hero;
+        static AIHeroClient GetLastQBuffEnemyHero()
         {
             var currentEnemyWithQBuff = ObjectManager.Get<Obj_AI_Base>()
                 .FirstOrDefault(x => x.IsEnemy && x.IsValid && x.HasBuff("BlindMonkQOne")) as AIHeroClient;
             if (currentEnemyWithQBuff != null)
             {
-                lastEnemyWithQBuff = currentEnemyWithQBuff;
-                QbuffEndTime = lastEnemyWithQBuff.GetBuff("BlindMonkQOne").EndTime;
+                lastEnemyWithQBuff_hero = currentEnemyWithQBuff;
+                QbuffEndTime_hero = lastEnemyWithQBuff_hero.GetBuff("BlindMonkQOne").EndTime;
             }
-            if (lastEnemyWithQBuff != null && Game.Time >= QbuffEndTime)
-                lastEnemyWithQBuff = null;
+            if (lastEnemyWithQBuff_hero != null && Game.Time >= QbuffEndTime_hero)
+                lastEnemyWithQBuff_hero = null;
 
-            return lastEnemyWithQBuff;
+            return lastEnemyWithQBuff_hero;
+        }
+
+        private static Obj_AI_Base lastEnemyWithQBuff_object;
+        private static float QbuffEndTime_object;
+        static Obj_AI_Base GetLastQBuffEnemyObject()
+        {
+            var currentEnemyWithQBuff = ObjectManager.Get<Obj_AI_Base>()
+                .FirstOrDefault(x => x.IsEnemy && x.IsValid && x.HasBuff("BlindMonkQOne"));
+            if (currentEnemyWithQBuff != null)
+            {
+                lastEnemyWithQBuff_object = currentEnemyWithQBuff;
+                QbuffEndTime_object = lastEnemyWithQBuff_object.GetBuff("BlindMonkQOne").EndTime;
+            }
+            if (lastEnemyWithQBuff_object != null && Game.Time >= QbuffEndTime_object)
+                lastEnemyWithQBuff_object = null;
+
+            return lastEnemyWithQBuff_hero;
         }
 
         private void CheckWardFlashKick(Vector2 wardPlacePos)
@@ -388,16 +414,19 @@ namespace MoonyLeeKicks
             
 
 
-            float distQTargetToWardPos = GetLastQBuffEnemy() != null ? 
-                GetLastQBuffEnemy().Distance(wardPlacePos) : float.MaxValue;
+            float distQTargetToWardPos = GetLastQBuffEnemyHero() != null ? 
+                GetLastQBuffEnemyHero().Distance(wardPlacePos) : float.MaxValue;
             float maxRange = canWardJump ? 600 : 425;
-            if (maxRange > 0 && allyJumpValid) maxRange = SpellManager.W1.Range;
+            if (allyJumpValid) maxRange = SpellManager.W1.Range;
 
             bool dontNeedFlash = distQTargetToWardPos <= maxRange;
-            bool waitForQFirst = SpellManager.CanCastQ1 && /*me.Mana >= minEnergy &&*/
+            bool waitForQFirst = (SpellManager.CanCastQ1 || Environment.TickCount - LastQ1CastTick < 1000) &&
                                     LeeSinMenu.insecConfig["waitForQBefore_WardFlashKick"].Cast<CheckBox>().CurrentValue;
+            bool onlyUseWithQ = GetLastQBuffEnemyObject() == null &&
+                LeeSinMenu.insecConfig["WardFlashKickOnlyWithQ"].Cast<CheckBox>().CurrentValue;
+
             if (inRange && canWardJump && canFlash && !dontNeedFlash && !InsecSolution.GotASolution &&
-                !waitForQFirst)
+                !waitForQFirst && !onlyUseWithQ)
             {
                 if (WardManager.CanCastWard)
                     WardManager.CastWardTo(wardPlacePos.To3D());
@@ -416,8 +445,8 @@ namespace MoonyLeeKicks
             var canFlash = SpellManager.FlashReady;
             var canWardJump = SpellManager.CanCastW1 && me.Mana >= minEnegeryFirstActivation &&
                               WardManager.CanCastWard;
-            float distToWardPlacePos = GetLastQBuffEnemy() != null && GetLastQBuffEnemy().IsValid
-                ? GetLastQBuffEnemy().Distance(wardPlacePos)
+            float distToWardPlacePos = GetLastQBuffEnemyHero() != null && GetLastQBuffEnemyHero().IsValid
+                ? GetLastQBuffEnemyHero().Distance(wardPlacePos)
                 : me.Distance(wardPlacePos);
 
             if (distToWardPlacePos <= WardManager.WardRange && canWardJump && canFlash)
@@ -439,26 +468,28 @@ namespace MoonyLeeKicks
         private void CheckInsec()
         {
             var allyPos = SelectionHandler.GetAllyPos;
+            Orbwalker.OrbwalkTo(Game.CursorPos);
 
-            if (!me.Spellbook.GetSpell(SpellSlot.Q).Name.Contains("One") && Game.Time - WardManager._lastWardJumpTime > 1.5f)
+            if (SpellManager.CanCastQ2 && Game.Time - WardManager._lastWardJumpTime > 1.5f && 
+                !LeeSinMenu.insecConfig["onlyQ2IfNeeded"].Cast<CheckBox>().CurrentValue) //just cast q2, doesnt matter if senseful anymore
                 SpellManager.Q2.Cast();
-            Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
 
             #region setVars
-                var target = SelectionHandler.GetTarget;
+            var target = SelectionHandler.GetTarget;
             
 
                 var canFlash = SpellManager.FlashReady;
                 var canWardJump = SpellManager.CanCastW1 && me.Mana >= minEnegeryFirstActivation &&
                                   WardManager.CanCastWard;
-                var canQ = SpellManager.CanCastQ1 && me.Mana >= minEnergy;
-            var wardPlacePos = WardJumpPosition.GetWardJumpPosition(allyPos, GetLastQBuffEnemy());
+            var wardPlacePos = WardJumpPosition.GetWardJumpPosition(allyPos, GetLastQBuffEnemyHero());
             #endregion setVars
 
             /*normal q cast on enemy*/
             var qPred = SpellManager.Q1.GetPrediction(target);
-            if (qPred.HitChance >= HitChance.High && canQ)
+            if (qPred.HitChance >= HitChance.High && SpellManager.CanCastQ1)
                 SpellManager.Q1.Cast(qPred.CastPosition);
+            else if (SpellManager.CanCastQ2 && GetLastQBuffEnemyHero() == target)
+                SpellManager.Q2.Cast();
 
             /*try insec if possible*/
             bool tryMoonSec = LeeSinMenu.insecConfig["moonSec"].Cast<CheckBox>().CurrentValue;
@@ -474,7 +505,7 @@ namespace MoonyLeeKicks
 
             CheckWardFlashKick(wardPlacePos);
 
-            if (canQ && !InsecSolution.GotASolution)
+            if (!InsecSolution.GotASolution)
             {
                 #region searchMinion
 
@@ -493,25 +524,35 @@ namespace MoonyLeeKicks
                 }
 
                 #endregion
+                bool canQ2 = SpellManager.CanCastQ2 && Game.Time - WardManager._lastWardJumpTime > 1.5f;
 
                 var targetMinion = minList.OrderBy(x => x.Distance(target)).FirstOrDefault();
                 if (targetMinion != null && targetMinion.IsValid)
                 {
                     if (targetMinion.Distance(wardPlacePos) <= WardManager.WardRange && canWardJump)
                     {
-                        SpellManager.Q1.Cast(targetMinion.Position);
+                        if (canQ2 && GetLastQBuffEnemyObject() == targetMinion)
+                            SpellManager.Q2.Cast();
+                        else
+                            SpellManager.Q1.Cast(targetMinion.Position);
                     }
 
                     if (targetMinion.Distance(wardPlacePos) <= SpellManager.Flash.Range && canFlash)
                     {
-                        SpellManager.Q1.Cast(targetMinion.Position);
+                        if (canQ2 && GetLastQBuffEnemyObject() == targetMinion)
+                            SpellManager.Q2.Cast();
+                        else
+                            SpellManager.Q1.Cast(targetMinion.Position);
                     }
                     /*q minion + wardjump + flash*/
                     if (targetMinion.Distance(wardPlacePos) > SpellManager.Flash.Range &&
                              targetMinion.Distance(wardPlacePos) > WardManager.WardRange && canWardJump && canFlash &&
                              targetMinion.Distance(wardPlacePos) <= SpellManager.Flash.Range + WardManager.WardRange)
                     {
-                        SpellManager.Q1.Cast(targetMinion.Position);
+                        if (canQ2 && GetLastQBuffEnemyObject() == targetMinion)
+                            SpellManager.Q2.Cast();
+                        else
+                            SpellManager.Q1.Cast(targetMinion.Position);
                     }
                 }
             }
