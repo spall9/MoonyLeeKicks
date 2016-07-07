@@ -64,33 +64,27 @@ namespace MoonyLeeKicks
             switch (Orbwalker.ActiveModesFlags)
             {
                     case Orbwalker.ActiveModes.Combo:
-                    Combo();
+                        Combo();
                     break;
                     case Orbwalker.ActiveModes.Flee:
-                    Flee();
+                        Flee();
                     break;
                     case Orbwalker.ActiveModes.LaneClear:
-                    WaveClear();
+                        WaveClear();
                     break;
                     case Orbwalker.ActiveModes.JungleClear:
-                    JungleClear();
+                        JungleClear();
                     break;
             }
         }
 
-        static Obj_AI_Base GetAllyAsWard(Vector2 wardPlacePos)
+        static Obj_AI_Base GetAllyAsWard(Vector2 pos)
         {
-            List<Obj_AI_Base> allyJumps = new List<Obj_AI_Base>();
+            IEnumerable<Obj_AI_Base> allyJumps = 
+                ObjectManager.Get<Obj_AI_Base>().Where(x => x.IsValid && x.IsAlly && !x.IsMe && 
+                    x.Distance(pos) <= 80 && (x is AIHeroClient || x is Obj_AI_Minion)).ToList();
 
-            foreach (var allyobj in ObjectManager.Get<Obj_AI_Base>().Where(x =>
-                            x.IsValid && x.IsAlly && !x.IsMe && (x is AIHeroClient || x is Obj_AI_Minion)))
-            {
-                if (allyobj.Distance(wardPlacePos) <= 80)
-                {
-                    allyJumps.Add(allyobj);
-                }
-            }
-            Obj_AI_Base obj = allyJumps.Any() ? allyJumps.OrderBy(x => x.Distance(wardPlacePos)).First() : null;
+            Obj_AI_Base obj = allyJumps.Any() ? allyJumps.OrderBy(x => x.Distance(pos)).First() : null;
             return obj;
         }
 
@@ -182,18 +176,22 @@ namespace MoonyLeeKicks
 
         private static void Flee()
         {
-            Vector2 jumpPos = me.Position.To2D() +
-                            (Game.CursorPos.To2D() - me.Position.To2D()).Normalized() * WardManager.WardRange;
-
-            Obj_AI_Base allyobj = GetAllyAsWard(jumpPos);
-            bool allyobjValid = allyobj != null && allyobj.IsValid;
             bool canWard = WardManager.CanCastWard;
             bool enoughMana = me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana;
             bool doWardJump = LeeSinMenu.config["moonyLee_useWardJump"].Cast<CheckBox>().CurrentValue;
+            bool maxRange = LeeSinMenu.config["moonyLee_useWardJumpMaxRange"].Cast<CheckBox>().CurrentValue;
+
+            Vector2 maxRangeJumpPos = me.Position.To2D() +
+                            (Game.CursorPos.To2D() - me.Position.To2D()).Normalized() * WardManager.WardRange;
+            Vector3 mousePos = me.Distance(Game.CursorPos.To2D()) > WardManager.WardRange ? 
+                me.Position.Extend(Game.CursorPos, WardManager.WardRange).To3D() : Game.CursorPos;
+
+            Obj_AI_Base allyobj = GetAllyAsWard(maxRange ? maxRangeJumpPos : mousePos.To2D());
+            bool allyobjValid = allyobj != null && allyobj.IsValid;
 
             if (canWard && enoughMana && doWardJump && !allyobjValid)
             {
-                WardManager.CastWardTo(jumpPos.To3D());
+                WardManager.CastWardTo(maxRange ? maxRangeJumpPos.To3D() : mousePos);
             }
             else if (enoughMana && doWardJump && allyobjValid)
             {

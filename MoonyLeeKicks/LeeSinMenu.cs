@@ -35,6 +35,7 @@ namespace MoonyLeeKicks
             config.AddSeparator();
             config.AddGroupLabel("Misc");
             config.Add("moonyLee_useWardJump", new CheckBox("Wardjump in Flee Mode"));
+            config.Add("moonyLee_useWardJumpMaxRange", new CheckBox("Use for max range"));
             config.Add("moonyLee_useRKs_General", new CheckBox("Killsteal R if possible", false));
 
 
