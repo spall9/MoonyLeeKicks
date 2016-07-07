@@ -488,7 +488,7 @@ namespace MoonyLeeKicks
             var qPred = SpellManager.Q1.GetPrediction(target);
             if (qPred.HitChance >= HitChance.High && SpellManager.CanCastQ1)
                 SpellManager.Q1.Cast(qPred.CastPosition);
-            else if (SpellManager.CanCastQ2 && GetLastQBuffEnemyHero() == target)
+            else if (SpellManager.CanCastQ2 && GetLastQBuffEnemyHero() == target && Game.Time - WardManager._lastWardJumpTime > 1.5f)
                 SpellManager.Q2.Cast();
 
             /*try insec if possible*/
