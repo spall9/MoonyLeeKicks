@@ -133,6 +133,7 @@ namespace MoonyLeeKicks
             Game.OnUpdate += GameOnOnUpdate;
 
             Obj_AI_Base.OnProcessSpellCast += AiHeroClientOnOnProcessSpellCast;
+            Obj_AI_Base.OnSpellCast += ObjAiBaseOnOnSpellCast;
             Obj_AI_Base.OnPlayAnimation += ObjAiBaseOnOnPlayAnimation;
             Drawing.OnDraw += DrawingOnOnDraw;
         }
@@ -201,7 +202,7 @@ namespace MoonyLeeKicks
             return obj;
         }
 
-        private void AiHeroClientOnOnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
+        private void ObjAiBaseOnOnSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
             if (!sender.IsMe || args.Slot != SpellSlot.R || !LeeSinMenu.insecMenu["_insecKey"].Cast<KeyBind>().CurrentValue)
                 return;
@@ -212,6 +213,13 @@ namespace MoonyLeeKicks
                 var allyPos = SelectionHandler.GetAllyPos;
 
                 var flashPos = allyPos.Extend(target, allyPos.Distance(target) + SpellManager.Flash.Range);
+                var normalWarPos = WardJumpPosition.GetWardJumpPosition(allyPos, GetLastQBuffEnemyHero());
+                float angle = (flashPos - target.Position.To2D()).AngleBetween(normalWarPos - target.Position.To2D());
+                if (angle <= 20 && target.Distance(me) <= SpellManager.R.Range)
+                {
+                    moonSecActive = false;
+                    return;
+                }
 
                 Core.RepeatAction(() =>
                 {
@@ -222,9 +230,16 @@ namespace MoonyLeeKicks
                         InsecSolution.ResetSolution();
                         moonSecActive = false;
                     }, 1600 - 80);
-                }, 80, 1500);
+                }, 0, 1500);
             }
-            else if (InsecSolution.GotASolution)
+        }
+
+        private void AiHeroClientOnOnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
+        {
+            if (!sender.IsMe || args.Slot != SpellSlot.R || !LeeSinMenu.insecMenu["_insecKey"].Cast<KeyBind>().CurrentValue)
+                return;
+
+            if (InsecSolution.GotASolution && !moonSecActive)
                 Core.DelayAction(InsecSolution.ResetSolution, 1600);
 
             var canQ = SpellManager.CanCastQ1;
