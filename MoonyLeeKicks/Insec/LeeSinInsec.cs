@@ -213,7 +213,7 @@ namespace MoonyLeeKicks
 
                 var flashPos = allyPos.Extend(target, allyPos.Distance(target) + SpellManager.Flash.Range);
 
-                Core.DelayAction(() =>
+                Core.RepeatAction(() =>
                 {
                     SpellManager.Flash.Cast(flashPos.To3D());
 
@@ -222,7 +222,7 @@ namespace MoonyLeeKicks
                         InsecSolution.ResetSolution();
                         moonSecActive = false;
                     }, 1600 - 80);
-                }, 80);
+                }, 80, 1500);
             }
             else if (InsecSolution.GotASolution)
                 Core.DelayAction(InsecSolution.ResetSolution, 1600);
