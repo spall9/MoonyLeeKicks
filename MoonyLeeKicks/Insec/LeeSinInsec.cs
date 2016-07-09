@@ -332,6 +332,9 @@ namespace MoonyLeeKicks
 
                 Core.RepeatAction(() =>
                 {
+                    if (me.Distance(wardPlacePos) > 80)
+                        return;
+
                     SpellManager.R.Cast(target);
                 }, 0, 3000);
             }
@@ -348,6 +351,9 @@ namespace MoonyLeeKicks
 
                 Core.RepeatAction(() =>
                 {
+                    if (me.Distance(wardPlacePos) > 80)
+                        return;
+
                     SpellManager.R.Cast(target);
                 }, 0, 3000);
             }
@@ -447,6 +453,9 @@ namespace MoonyLeeKicks
 
                     Core.RepeatAction(() =>
                     {
+                        if (me.Distance(wardPlacePos) > 80)
+                            return;
+
                         SpellManager.R.Cast(target);
                     }, 350, 3000);
                 }
