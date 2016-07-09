@@ -100,38 +100,32 @@ namespace MoonyLeeKicks.Extras
                     SpellManager.Q2.Cast();
             }
 
-            if (LeeSinMenu.insecMenu["_insecKey"].Cast<KeyBind>().CurrentValue &&
-                LeeSinMenu.smiteMenu["useSmiteQInsec"].Cast<CheckBox>().CurrentValue && SelectionHandler.LastTargetValid &&
-                SpellManager.CanCastQ1 && me.Mana >= 50)
+            bool comboSmite = Orbwalker.ActiveModesFlags == Orbwalker.ActiveModes.Combo &&
+                              LeeSinMenu.smiteMenu["useSmiteQCombo"].Cast<CheckBox>().CurrentValue;
+            bool insecSmite = LeeSinMenu.insecMenu["_insecKey"].Cast<KeyBind>().CurrentValue &&
+                              LeeSinMenu.smiteMenu["useSmiteQInsec"].Cast<CheckBox>().CurrentValue &&
+                              SelectionHandler.LastTargetValid;
+            if ((comboSmite || insecSmite) && SpellManager.CanCastQ1 && me.Mana >= 50)
             {
-                var target = SelectionHandler.GetTarget;
-                var pred = SpellManager.Q1.GetPrediction(target);
+                var target = comboSmite
+                    ? (TargetSelector.GetTarget(1000, DamageType.Magical) ??
+                       TargetSelector.GetTarget(1000, DamageType.Physical))
+                    : SelectionHandler.GetTarget;
 
-                if (pred.CollisionObjects.Length == 1 &&
-                    pred.CollisionObjects[0].Distance(me) <= SpellManager.Smite.Range &&
-                    pred.CollisionObjects[0].Health <= GetSmiteDamage() && !(pred.CollisionObjects[0] is AIHeroClient)
+                var pred = SpellManager.Q1.GetPrediction(target);
+                Geometry.Polygon.Rectangle collisionRect = new Geometry.Polygon.Rectangle(me.Position, pred.UnitPosition, 
+                    SpellManager.Q1.Radius*2);
+                List<Obj_AI_Minion> collisions = 
+                    EntityManager.MinionsAndMonsters.EnemyMinions.Where(x => collisionRect.IsInside(x) && !x.IsDead && x.IsValid).ToList();
+                
+
+                if (collisions.Count == 1 &&
+                    collisions[0].Distance(me) <= SpellManager.Smite.Range &&
+                    collisions[0].Health <= GetSmiteDamage()
                     && pred.HitChance >= HitChance.High && SelectionHandler.LastTargetValid)
                 {
                     SpellManager.Q1.Cast(pred.CastPosition);
                     Core.RepeatAction(() => SpellManager.Smite.Cast(pred.CollisionObjects[0]),
-                        Math.Max(50, SpellManager.Q1.CastDelay - SpellManager.Smite.CastDelay), 1500);
-                }
-            }
-
-            if (Orbwalker.ActiveModesFlags == Orbwalker.ActiveModes.Combo &&
-                LeeSinMenu.smiteMenu["useSmiteQCombo"].Cast<CheckBox>().CurrentValue &&
-                SpellManager.CanCastQ1 && me.Mana >= 50)
-            {
-                var target = TargetSelector.GetTarget(1000, DamageType.Magical) ?? TargetSelector.GetTarget(1000, DamageType.Physical);
-                var pred = SpellManager.Q1.GetPrediction(target);
-
-                if (target.IsValid && pred.CollisionObjects.Length == 1 &&
-                    pred.CollisionObjects[0].Distance(me) <= SpellManager.Smite.Range && 
-                    pred.CollisionObjects[0].Health <= GetSmiteDamage() && !(pred.CollisionObjects[0] is AIHeroClient)
-                    && pred.HitChance >= HitChance.High)
-                {
-                    SpellManager.Q1.Cast(pred.CastPosition);
-                    Core.RepeatAction(() => SpellManager.Smite.Cast(pred.CollisionObjects[0]), 
                         Math.Max(50, SpellManager.Q1.CastDelay - SpellManager.Smite.CastDelay), 1500);
                 }
             }
