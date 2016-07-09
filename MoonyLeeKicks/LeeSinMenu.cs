@@ -50,7 +50,7 @@ namespace MoonyLeeKicks
 
             insecMenu.Add("_insecKey", new KeyBind("LeeSinInsec Key", false, KeyBind.BindTypes.HoldActive));
             insecMenu.Add("moonSec", new CheckBox("Enable MoonSec", false));
-            insecMenu.AddLabel("^ For Fancy Looking Purpose only (Could Mess Up!) ^");
+            insecMenu.AddLabel("^ For Fancy Looking Purpose Only (Could Mess Up!) ^");
             insecMenu.AddSeparator();
 
             insecMenu.AddGroupLabel("Drawings");
@@ -78,9 +78,9 @@ namespace MoonyLeeKicks
             insecExtensionsMenu.Add("WardFlashKickOnlyWithQ", new CheckBox("Only Enable Ward->Flash->Kick If the Q hit", false));
             insecExtensionsMenu.AddSeparator();
 
-            insecExtensionsMenu.Add("correctInsecWithOtherSpells", new CheckBox("Correct Insec With Other Spells (e.g. Flash)"));
-            insecExtensionsMenu.AddLabel("If Your End Position Behind The Enemy is Inaccurate");
-            insecExtensionsMenu.AddSeparator();
+            //insecExtensionsMenu.Add("correctInsecWithOtherSpells", new CheckBox("Correct Insec With Other Spells (e.g. Flash)"));
+            //insecExtensionsMenu.AddLabel("If Your End Position Behind The Enemy is Inaccurate");
+            //insecExtensionsMenu.AddSeparator();
 
             insecExtensionsMenu.Add("useMovementPrediction", new CheckBox("Use Movement Prediction"));
             insecExtensionsMenu.AddLabel("If The Target Is Running Away, The Ward Distance To It Increases");
@@ -160,7 +160,7 @@ namespace MoonyLeeKicks
             smiteMenu.AddSeparator();
 
             smiteMenu.Add("useSmiteQCombo", new CheckBox("Use Smite->Q in Combo"));
-            smiteMenu.Add("useSmiteQInsec", new CheckBox("Use Smite->Q in Insec"));
+            smiteMenu.Add("useSmiteQInsec", new CheckBox("Use Smite->Q in Insec "));
 
 
 
