@@ -159,8 +159,8 @@ namespace MoonyLeeKicks
             smiteMenu.Add("useSmiteKs", new CheckBox("Use Smite To Ks"));
             smiteMenu.AddSeparator();
 
-            smiteMenu.Add("useSmiteQCombo", new CheckBox("Use Smite->Q in Combo (buggy atm)"));
-            smiteMenu.Add("useSmiteQInsec", new CheckBox("Use Smite->Q in Insec (buggy atm)"));
+            smiteMenu.Add("useSmiteQCombo", new CheckBox("Use Smite->Q in Combo"));
+            smiteMenu.Add("useSmiteQInsec", new CheckBox("Use Smite->Q in Insec"));
 
 
 

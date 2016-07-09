@@ -113,16 +113,13 @@ namespace MoonyLeeKicks.Extras
                     : SelectionHandler.GetTarget;
 
                 var pred = SpellManager.Q1.GetPrediction(target);
-                Geometry.Polygon.Rectangle collisionRect = new Geometry.Polygon.Rectangle(me.Position, pred.UnitPosition, 
-                    SpellManager.Q1.Radius*2);
-                List<Obj_AI_Minion> collisions = 
-                    EntityManager.MinionsAndMonsters.EnemyMinions.Where(x => collisionRect.IsInside(x) && !x.IsDead && x.IsValid).ToList();
-                
+                List<Obj_AI_Base> collisions =
+                    pred.CollisionObjects.Where(x => !(x is AIHeroClient)).ToList();
 
                 if (collisions.Count == 1 &&
                     collisions[0].Distance(me) <= SpellManager.Smite.Range &&
                     collisions[0].Health <= GetSmiteDamage()
-                    && pred.HitChance >= HitChance.High && SelectionHandler.LastTargetValid)
+                    && target.IsValid)
                 {
                     SpellManager.Q1.Cast(pred.CastPosition);
                     Core.RepeatAction(() => SpellManager.Smite.Cast(pred.CollisionObjects[0]),
