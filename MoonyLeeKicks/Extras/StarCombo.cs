@@ -6,9 +6,8 @@ using EloBuddy.SDK;
 using EloBuddy.SDK.Menu.Values;
 using EloBuddy.SDK.Rendering;
 using SharpDX;
-using Color = SharpDX.Color;
 
-namespace MoonyLeeKicks.UserWishes
+namespace MoonyLeeKicks.Extras
 {
     internal class StarCombo
     {
@@ -26,15 +25,15 @@ namespace MoonyLeeKicks.UserWishes
             switch (entry)
             {
                 case MenuEntry.UseAlly:
-                    return LeeSinMenu.userMenu["starComboUseAlly"].Cast<CheckBox>().CurrentValue;
+                    return LeeSinMenu.starComboMenu["starComboUseAlly"].Cast<CheckBox>().CurrentValue;
                 case MenuEntry.UseWard:
-                    return LeeSinMenu.userMenu["starComboUseWard"].Cast<CheckBox>().CurrentValue;
+                    return LeeSinMenu.starComboMenu["starComboUseWard"].Cast<CheckBox>().CurrentValue;
                 case MenuEntry.UseFlash:
-                    return LeeSinMenu.userMenu["starComboUseFlash"].Cast<CheckBox>().CurrentValue;
+                    return LeeSinMenu.starComboMenu["starComboUseFlash"].Cast<CheckBox>().CurrentValue;
                 case MenuEntry.CorrectPos:
-                    return LeeSinMenu.userMenu["correctStarCombo"].Cast<CheckBox>().CurrentValue;
+                    return LeeSinMenu.starComboMenu["correctStarCombo"].Cast<CheckBox>().CurrentValue;
                 case MenuEntry.MovementPrediction:
-                    return LeeSinMenu.userMenu["starComboMovementPrediction"].Cast<CheckBox>().CurrentValue;
+                    return LeeSinMenu.starComboMenu["starComboMovementPrediction"].Cast<CheckBox>().CurrentValue;
             }
 
             return false;
@@ -83,7 +82,7 @@ namespace MoonyLeeKicks.UserWishes
 
         private void AiHeroClientOnOnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            if (!sender.IsMe || args.Slot != SpellSlot.R || !LeeSinMenu.userMenu["starComboKey"].Cast<KeyBind>().CurrentValue)
+            if (!sender.IsMe || args.Slot != SpellSlot.R || !LeeSinMenu.starComboMenu["starComboKey"].Cast<KeyBind>().CurrentValue)
                 return;
 
             var canQ = SpellManager.CanCastQ1;
@@ -162,11 +161,11 @@ namespace MoonyLeeKicks.UserWishes
                 targetPos = predPos;
             }
 
-            if (LeeSinMenu.userMenu["starComboMultiR"].Cast<CheckBox>().CurrentValue)
+            if (LeeSinMenu.starComboMenu["starComboMultiR"].Cast<CheckBox>().CurrentValue)
             {
                 float leeSinRKickDistance = 700;
                 float leeSinRKickWidth = 100;
-                var minREnemies = LeeSinMenu.userMenu["starComboMultiRHitCount"].Cast<Slider>().CurrentValue;
+                var minREnemies = LeeSinMenu.starComboMenu["starComboMultiRHitCount"].Cast<Slider>().CurrentValue;
 
                 Vector2 vecToRotate = new Vector2(200, 0);
                 Vector2 op = targetPos;
@@ -192,7 +191,7 @@ namespace MoonyLeeKicks.UserWishes
 
         private void GameOnOnUpdate(EventArgs args)
         {
-            if (!LeeSinMenu.userMenu["starComboKey"].Cast<KeyBind>().CurrentValue)
+            if (!LeeSinMenu.starComboMenu["starComboKey"].Cast<KeyBind>().CurrentValue)
             {
                 errorString = string.Empty;
                 return;

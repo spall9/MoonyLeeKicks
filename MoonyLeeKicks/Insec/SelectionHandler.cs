@@ -25,7 +25,7 @@ namespace MoonyLeeKicks
         {
             if (args.Msg == (uint)WindowMessages.LeftButtonDown)
             {
-                bool onMouseSpot = LeeSinMenu.userMenu["insecToMouseSpot"].Cast<CheckBox>().CurrentValue;
+                bool onMouseSpot = LeeSinMenu.insecExtensionsMenu["insecToMouseSpot"].Cast<CheckBox>().CurrentValue;
 
                 var allyy = ObjectManager.Get<Obj_AI_Base>().Where(x => !x.IsMe && x.IsAlly && x.IsValid &&
                 (x is AIHeroClient || x is Obj_AI_Turret)).OrderBy(x => x.Distance(Game.CursorPos)).FirstOrDefault

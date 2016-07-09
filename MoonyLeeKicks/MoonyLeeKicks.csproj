@@ -53,6 +53,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extras\Smite.cs" />
     <Compile Include="Insec\DashInfo.cs" />
     <Compile Include="Insec\LeeSinInsec.cs" />
     <Compile Include="LeeSinMenu.cs" />
@@ -61,8 +62,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SpellManager.cs" />
     <Compile Include="Insec\SelectionHandler.cs" />
-    <Compile Include="UserWishes\BubbaKush.cs" />
-    <Compile Include="UserWishes\StarCombo.cs" />
+    <Compile Include="Extras\BubbaKush.cs" />
+    <Compile Include="Extras\StarCombo.cs" />
     <Compile Include="WardManager.cs" />
   </ItemGroup>
   <ItemGroup>

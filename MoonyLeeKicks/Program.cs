@@ -6,7 +6,7 @@ using EloBuddy.SDK;
 using EloBuddy.SDK.Enumerations;
 using EloBuddy.SDK.Events;
 using EloBuddy.SDK.Menu.Values;
-using MoonyLeeKicks.UserWishes;
+using MoonyLeeKicks.Extras;
 using SharpDX;
 
 namespace MoonyLeeKicks
@@ -38,14 +38,11 @@ namespace MoonyLeeKicks
                     SpellManager.Init();
                     ChampionDashes.Init();
 
-                    if (!LeeSinMenu.config["unloadExtensions"].Cast<CheckBox>().CurrentValue)
-                    {
-                        new StarCombo();
-                        new BubbaKush();
-                    }
                     new MultiKick();
                     new LeeSinInsec();
-                    
+                    new StarCombo();
+                    new BubbaKush();
+                    new Smite();
 
                     Game.OnUpdate += LeeSinOnUpdate;
                 }

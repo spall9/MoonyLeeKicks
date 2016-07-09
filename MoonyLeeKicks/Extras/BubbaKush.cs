@@ -8,7 +8,7 @@ using EloBuddy.SDK.Menu.Values;
 using EloBuddy.SDK.Rendering;
 using SharpDX;
 
-namespace MoonyLeeKicks.UserWishes
+namespace MoonyLeeKicks.Extras
 {
     public static class PolygonExtensions
     {
@@ -32,7 +32,7 @@ namespace MoonyLeeKicks.UserWishes
     internal class BubbaKush
     {
         private AIHeroClient me;
-        private bool enabled => LeeSinMenu.userMenu["bubbaKey"].Cast<KeyBind>().CurrentValue;
+        private bool enabled => LeeSinMenu.bubbaKushMenu["bubbaKey"].Cast<KeyBind>().CurrentValue;
         private bool hasResources => SpellManager.R.IsReady() && SpellManager.FlashReady && WardManager.CanCastWard;
 
         private bool targetValid = (TargetSelector.SelectedTarget != null && TargetSelector.SelectedTarget.IsValid) ||
@@ -56,7 +56,7 @@ namespace MoonyLeeKicks.UserWishes
                     return false;
 
                 return EntityManager.Heroes.Allies.Any(x => x.IsValid && x.Distance(me) <= SpellManager.W1.Range && x.Distance(target) < 100) && me.Mana >= 50 &&
-                    SpellManager.CanCastW1 && LeeSinMenu.userMenu["useAlliesBubba"].Cast<CheckBox>().CurrentValue;
+                    SpellManager.CanCastW1 && LeeSinMenu.bubbaKushMenu["useAlliesBubba"].Cast<CheckBox>().CurrentValue;
             }
         }
 
@@ -89,7 +89,7 @@ namespace MoonyLeeKicks.UserWishes
 
         private void AiHeroClientOnOnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            if (!sender.IsMe || args.Slot != SpellSlot.R || !LeeSinMenu.userMenu["bubbaKey"].Cast<KeyBind>().CurrentValue)
+            if (!sender.IsMe || args.Slot != SpellSlot.R || !LeeSinMenu.bubbaKushMenu["bubbaKey"].Cast<KeyBind>().CurrentValue)
                 return;
 
             Vector2 flashPos = GetFlashPos();
@@ -171,7 +171,7 @@ namespace MoonyLeeKicks.UserWishes
                 }
             }
 
-            if (LeeSinMenu.userMenu["useMovementPredictionBubba1"].Cast<CheckBox>().CurrentValue && WardManager.CanWardJump)
+            if (LeeSinMenu.bubbaKushMenu["useMovementPredictionBubba1"].Cast<CheckBox>().CurrentValue && WardManager.CanWardJump)
             {
                 float predictionDist = me.Distance(target) >= WardManager.WardRange
                     ? WardManager.WardRange
@@ -209,9 +209,9 @@ namespace MoonyLeeKicks.UserWishes
         {
             var targetPos = target.Position.To2D();
             Vector2 bestPos = Vector2.Zero;
-            bool useBetterCalculations = LeeSinMenu.userMenu["betterCalculationBubba"].Cast<CheckBox>().CurrentValue;
+            bool useBetterCalculations = LeeSinMenu.bubbaKushMenu["betterCalculationBubba"].Cast<CheckBox>().CurrentValue;
 
-            bool predictAllEnemiesPos = LeeSinMenu.userMenu["useMovementPredictionBubba2"].Cast<CheckBox>().CurrentValue;
+            bool predictAllEnemiesPos = LeeSinMenu.bubbaKushMenu["useMovementPredictionBubba2"].Cast<CheckBox>().CurrentValue;
             IEnumerable<Vector2> enemiesPos = predictAllEnemiesPos
                 ? from enemy in EntityManager.Heroes.Enemies
                   where enemy.IsValid && enemy.IsHPBarRendered

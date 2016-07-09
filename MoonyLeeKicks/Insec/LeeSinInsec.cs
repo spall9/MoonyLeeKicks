@@ -27,8 +27,8 @@ namespace MoonyLeeKicks
                 bool targetRunningAway = angle <= 10 &&
                     predPos.Distance(ObjectManager.Player.Position) > target.Distance(ObjectManager.Player);
                 bool useMovementPrediction =
-                    LeeSinMenu.insecConfig["useMovementPrediction"].Cast<CheckBox>().CurrentValue;
-                return targetRunningAway && useMovementPrediction ? 300 : LeeSinMenu.insecConfig["wardDistanceToTarget"].Cast<Slider>().CurrentValue;
+                    LeeSinMenu.insecExtensionsMenu["useMovementPrediction"].Cast<CheckBox>().CurrentValue;
+                return targetRunningAway && useMovementPrediction ? 300 : LeeSinMenu.insecMenu["wardDistanceToTarget"].Cast<Slider>().CurrentValue;
             }
             /// <summary>
             /// op vec
@@ -49,7 +49,7 @@ namespace MoonyLeeKicks
                                    (target.Distance(allyPos) + GetSpaceDistToEnemy());
 
                 bool hasQBuff = lastQBuffEnemy != null && lastQBuffEnemy == target && lastQBuffEnemy.IsValid;
-                bool attendDash = LeeSinMenu.insecConfig["attendDashes"].Cast<KeyBind>().CurrentValue;
+                bool attendDash = LeeSinMenu.insecExtensionsMenu["attendDashes"].Cast<KeyBind>().CurrentValue;
                 bool hasDash = target.HasAntiInsecDashReady();
                 if (hasDash && attendDash && hasQBuff)
                     wardPlacePos = target.CalculateWardPositionAfterDash(allyPos, GetSpaceDistToEnemy());
@@ -139,7 +139,7 @@ namespace MoonyLeeKicks
 
         private void ObjAiBaseOnOnPlayAnimation(Obj_AI_Base sender, GameObjectPlayAnimationEventArgs args)
         {
-            if (!sender.IsMe || !LeeSinMenu.insecConfig["_insecKey"].Cast<KeyBind>().CurrentValue)
+            if (!sender.IsMe || !LeeSinMenu.insecMenu["_insecKey"].Cast<KeyBind>().CurrentValue)
                 return;
 
             if (args.Animation == "Spell1b")
@@ -160,10 +160,10 @@ namespace MoonyLeeKicks
             GetLastQBuffEnemyHero(); //update
             GetLastQBuffEnemyObject(); //update
 
-            if (!LeeSinMenu.insecConfig["_insecKey"].Cast<KeyBind>().CurrentValue)
+            if (!LeeSinMenu.insecMenu["_insecKey"].Cast<KeyBind>().CurrentValue)
                 return;
 
-            int updateFrequency = LeeSinMenu.insecConfig["insecFrequency"].Cast<Slider>().CurrentValue;
+            int updateFrequency = LeeSinMenu.insecMenu["insecFrequency"].Cast<Slider>().CurrentValue;
             if (HasResourcesToInsec() && Environment.TickCount - lastInsecCheckTick >= updateFrequency)
             {
                 lastInsecCheckTick = Environment.TickCount;
@@ -203,23 +203,25 @@ namespace MoonyLeeKicks
 
         private void AiHeroClientOnOnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            if (!sender.IsMe || args.Slot != SpellSlot.R || !LeeSinMenu.insecConfig["_insecKey"].Cast<KeyBind>().CurrentValue)
+            if (!sender.IsMe || args.Slot != SpellSlot.R || !LeeSinMenu.insecMenu["_insecKey"].Cast<KeyBind>().CurrentValue)
                 return;
-
-            var allyPos = SelectionHandler.GetAllyPos;
 
             if (moonSecActive)
             {
                 var target = SelectionHandler.GetTarget;
-                var wardPlacePos = allyPos + (target.Position.To2D() - allyPos).Normalized()*
-                                   (target.Distance(allyPos) - (float) SpellManager.R.Range/2);
-                var flashPos = wardPlacePos.Extend(target, SpellManager.Flash.Range);
+                var allyPos = SelectionHandler.GetAllyPos;
+
+                var flashPos = allyPos.Extend(target, allyPos.Distance(target) + SpellManager.Flash.Range);
 
                 Core.DelayAction(() =>
                 {
                     SpellManager.Flash.Cast(flashPos.To3D());
-                    moonSecActive = false;
-                    if (InsecSolution.GotASolution) Core.DelayAction(InsecSolution.ResetSolution, 1600);
+
+                    Core.DelayAction(() =>
+                    {
+                        InsecSolution.ResetSolution();
+                        moonSecActive = false;
+                    }, 1600 - 80);
                 }, 80);
             }
             else if (InsecSolution.GotASolution)
@@ -257,7 +259,7 @@ namespace MoonyLeeKicks
 
             if (!SelectionHandler.LastAllyPosValid || !SelectionHandler.LastTargetValid)
             {
-                if (LeeSinMenu.insecConfig["_insecKey"].Cast<KeyBind>().CurrentValue)
+                if (LeeSinMenu.insecMenu["_insecKey"].Cast<KeyBind>().CurrentValue)
                     DrawFailInfo();
                 return;
             }
@@ -280,10 +282,10 @@ namespace MoonyLeeKicks
                 Drawing.DrawLine(endpos.To3D().WorldToScreen(), arrows[0].To3D().WorldToScreen(), 5, white);
                 Drawing.DrawLine(endpos.To3D().WorldToScreen(), arrows[1].To3D().WorldToScreen(), 5, white);
             }
-            else if (LeeSinMenu.insecConfig["_insecKey"].Cast<KeyBind>().CurrentValue)
+            else if (LeeSinMenu.insecMenu["_insecKey"].Cast<KeyBind>().CurrentValue)
                 DrawFailInfo();
 
-            bool dashDebug = LeeSinMenu.insecConfig["dashDebug"].Cast<KeyBind>().CurrentValue;
+            bool dashDebug = LeeSinMenu.insecMenu["dashDebug"].Cast<KeyBind>().CurrentValue;
             if (dashDebug)
             {
                 new Circle(new ColorBGRA(new Vector4(0, 0, 255, 1)), 70, 4).Draw(
@@ -328,7 +330,7 @@ namespace MoonyLeeKicks
                 else
                     SpellManager.W1.Cast(allyJump);
 
-                bool useCorrection = LeeSinMenu.insecConfig["correctInsecWithOtherSpells"].Cast<CheckBox>().CurrentValue;
+                bool useCorrection = LeeSinMenu.insecExtensionsMenu["correctInsecWithOtherSpells"].Cast<CheckBox>().CurrentValue;
                 Core.RepeatAction(() =>
                 {
                     if (me.Distance(wardPlacePos) > 80)
@@ -351,7 +353,7 @@ namespace MoonyLeeKicks
                 InsecSolution.FoundSolution(InsecSolution.InsecSolutionType.Flash);
                 SpellManager.Flash.Cast(wardPlacePos.To3D());
 
-                bool useCorrection = LeeSinMenu.insecConfig["correctInsecWithOtherSpells"].Cast<CheckBox>().CurrentValue;
+                bool useCorrection = LeeSinMenu.insecExtensionsMenu["correctInsecWithOtherSpells"].Cast<CheckBox>().CurrentValue;
                 Core.RepeatAction(() =>
                 {
                     if (me.Distance(wardPlacePos) > 80)
@@ -421,9 +423,9 @@ namespace MoonyLeeKicks
 
             bool dontNeedFlash = distQTargetToWardPos <= maxRange;
             bool waitForQFirst = (SpellManager.CanCastQ1 || Environment.TickCount - LastQ1CastTick < 1000) &&
-                                    LeeSinMenu.insecConfig["waitForQBefore_WardFlashKick"].Cast<CheckBox>().CurrentValue;
+                                    LeeSinMenu.insecExtensionsMenu["waitForQBefore_WardFlashKick"].Cast<CheckBox>().CurrentValue;
             bool onlyUseWithQ = GetLastQBuffEnemyObject() == null &&
-                LeeSinMenu.insecConfig["WardFlashKickOnlyWithQ"].Cast<CheckBox>().CurrentValue;
+                LeeSinMenu.insecExtensionsMenu["WardFlashKickOnlyWithQ"].Cast<CheckBox>().CurrentValue;
 
             if (inRange && canWardJump && canFlash && !dontNeedFlash && !InsecSolution.GotASolution &&
                 !waitForQFirst && !onlyUseWithQ)
@@ -445,23 +447,35 @@ namespace MoonyLeeKicks
             var canFlash = SpellManager.FlashReady;
             var canWardJump = SpellManager.CanCastW1 && me.Mana >= minEnegeryFirstActivation &&
                               WardManager.CanCastWard;
-            float distToWardPlacePos = GetLastQBuffEnemyHero() != null && GetLastQBuffEnemyHero().IsValid
-                ? GetLastQBuffEnemyHero().Distance(wardPlacePos)
-                : me.Distance(wardPlacePos);
+            bool useQ = GetLastQBuffEnemyObject() != null && GetLastQBuffEnemyObject().IsValid;
+            float distToWardPlacePos = useQ ? GetLastQBuffEnemyObject().Distance(wardPlacePos) : me.Distance(wardPlacePos);
 
             if (distToWardPlacePos <= WardManager.WardRange && canWardJump && canFlash)
             {
                 InsecSolution.FoundSolution(InsecSolution.InsecSolutionType.MoonSec);
                 moonSecActive = true;
-                
-                WardManager.CastWardTo(wardPlacePos.To3D());
-                Core.RepeatAction(() =>
+
+                if (!useQ || me.Distance(wardPlacePos) <= WardManager.WardRange)
                 {
-                    if (me.Distance(target) <= (float)SpellManager.Flash.Range/2)
-                        SpellManager.R.Cast(target);
-                    else
-                        moonSecActive = false;
-                }, 350, 1500);
+                    WardManager.CastWardTo(wardPlacePos.To3D());
+
+                    bool useCorrection = LeeSinMenu.insecExtensionsMenu["correctInsecWithOtherSpells"].Cast<CheckBox>().CurrentValue;
+                    Core.RepeatAction(() =>
+                    {
+                        if (me.Distance(wardPlacePos) > 80)
+                            return;
+
+                        if (me.Distance(target) <= SpellManager.Flash.Range)
+                            SpellManager.R.Cast(target);
+                        else if (SpellManager.R.IsReady() && useCorrection)
+                        {
+                            moonSecActive = false;
+                            InsecSolution.ResetSolution();
+                        }
+                    }, 350, 3000);
+                }
+                else
+                    SpellManager.Q2.Cast();
             }
         }
 
@@ -471,7 +485,7 @@ namespace MoonyLeeKicks
             Orbwalker.OrbwalkTo(Game.CursorPos);
 
             if (SpellManager.CanCastQ2 && Game.Time - WardManager._lastWardJumpTime > 1.5f && 
-                !LeeSinMenu.insecConfig["onlyQ2IfNeeded"].Cast<CheckBox>().CurrentValue) //just cast q2, doesnt matter if senseful anymore
+                !LeeSinMenu.insecExtensionsMenu["onlyQ2IfNeeded"].Cast<CheckBox>().CurrentValue) //just cast q2, doesnt matter if senseful anymore
                 SpellManager.Q2.Cast();
 
             #region setVars
@@ -492,7 +506,7 @@ namespace MoonyLeeKicks
                 SpellManager.Q2.Cast();
 
             /*try insec if possible*/
-            bool tryMoonSec = LeeSinMenu.insecConfig["moonSec"].Cast<CheckBox>().CurrentValue;
+            bool tryMoonSec = LeeSinMenu.insecMenu["moonSec"].Cast<CheckBox>().CurrentValue;
             if (InsecSolution.CanContinueSearchingFor(InsecSolution.InsecSolutionType.MoonSec) && tryMoonSec)
                 CheckMoonSec(target);
             if (moonSecActive)
