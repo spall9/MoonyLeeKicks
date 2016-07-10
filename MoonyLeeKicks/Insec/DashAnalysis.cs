@@ -63,6 +63,8 @@ namespace MoonyLeeKicks.Insec
 
                 checkBoxInstance.OnValueChange += (sender, args) => sender.CurrentValue = false;
             }
+            if (Enemies.Count == 0)
+                LeeSinMenu.DashAnalysisMenu.AddGroupLabel("Empty - In This Game No Enemy Has A Dash");
 
             Obj_AI_Base.OnProcessSpellCast += ObjAiBaseOnOnProcessSpellCast;
             Obj_AI_Base.OnPlayAnimation += ObjAiBaseOnOnPlayAnimation;
