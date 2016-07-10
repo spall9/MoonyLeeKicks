@@ -66,7 +66,7 @@ namespace MoonyLeeKicks.Extras
         {
             me = ObjectManager.Player;
             Game.OnUpdate += GameOnOnUpdate;
-            AIHeroClient.OnSpellCast += OnSpellCast;
+            AIHeroClient.OnProcessSpellCast += OnProcessSpellCast;
             Drawing.OnDraw += DrawingOnOnDraw;
         }
 
@@ -87,14 +87,14 @@ namespace MoonyLeeKicks.Extras
             StatusText.Draw();
         }
 
-        private void OnSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
+        private void OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
             if (!sender.IsMe || args.Slot != SpellSlot.R || !LeeSinMenu.bubbaKushMenu["bubbaKey"].Cast<KeyBind>().CurrentValue)
                 return;
 
             Vector2 flashPos = GetFlashPos();
             if (!flashPos.IsZero)
-                Core.RepeatAction(() => SpellManager.Flash.Cast(flashPos.To3D()), 0, 1000);
+                Core.RepeatAction(() => SpellManager.Flash.Cast(flashPos.To3D()), 80, 1000);
             else
             {
                 args.Process = false;
