@@ -456,8 +456,8 @@ namespace MoonyLeeKicks
             
 
 
-            float distQTargetToWardPos = GetLastQBuffEnemyHero() != null ? 
-                GetLastQBuffEnemyHero().Distance(wardPlacePos) : float.MaxValue;
+            float distQTargetToWardPos = GetLastQBuffEnemyObject() != null ?
+                GetLastQBuffEnemyObject().Distance(wardPlacePos) : float.MaxValue;
             float maxRange = canWardJump ? 600 : 425;
             if (allyJumpValid) maxRange = SpellManager.W1.Range;
 
