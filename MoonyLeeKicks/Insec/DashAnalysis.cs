@@ -63,8 +63,7 @@ namespace MoonyLeeKicks.Insec
 
         private static void ObjAiBaseOnOnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            if (GetLastQBuffEnemyHero() == null || !(sender is AIHeroClient) || sender.IsAlly ||
-                !((AIHeroClient)sender).HasAntiInsecDashReady())
+            if (GetLastQBuffEnemyHero() == null || !(sender is AIHeroClient) || sender.IsAlly)
                 return;
 
             DashAnalysisContainer container = enemies.First(x => x.Hero.NetworkId == sender.NetworkId);
@@ -105,7 +104,7 @@ namespace MoonyLeeKicks.Insec
             if (args.Animation == "Spell1b")
             {
                 //Last Q Enemy still valid if it was before
-                if (GetLastQBuffEnemyHero() != null)
+                if (GetLastQBuffEnemyHero() != null && GetLastQBuffEnemyHero().HasAntiInsecDashReady())
                 {
                     QbuffEndTime_hero += 3; //sec
                     DashAnalysisContainer container = enemies.First(x => x.Hero.NetworkId == GetLastQBuffEnemyHero().NetworkId);
