@@ -526,21 +526,18 @@ namespace MoonyLeeKicks
                 !LeeSinMenu.insecExtensionsMenu["onlyQ2IfNeeded"].Cast<CheckBox>().CurrentValue) //just cast q2, doesnt matter if senseful anymore
                 SpellManager.Q2.Cast();
 
-            #region setVars
             var target = SelectionHandler.GetTarget;
-            
-
                 var canFlash = SpellManager.FlashReady;
                 var canWardJump = SpellManager.CanCastW1 && me.Mana >= minEnegeryFirstActivation &&
-                                  WardManager.CanCastWard;
+                                    WardManager.CanCastWard;
             var wardPlacePos = WardJumpPosition.GetWardJumpPosition(allyPos, GetLastQBuffEnemyHero());
-            #endregion setVars
 
             /*normal q cast on enemy*/
             var qPred = SpellManager.Q1.GetPrediction(target);
             if (qPred.HitChance >= HitChance.High && SpellManager.CanCastQ1)
                 SpellManager.Q1.Cast(qPred.CastPosition);
-            else if (SpellManager.CanCastQ2 && GetLastQBuffEnemyHero() == target && Game.Time - WardManager._lastWardJumpTime > 1.5f)
+
+            if (SpellManager.CanCastQ2 && GetLastQBuffEnemyHero() == target && Game.Time - WardManager._lastWardJumpTime > 1f)
                 SpellManager.Q2.Cast();
 
             /*try insec if possible*/
@@ -572,7 +569,7 @@ namespace MoonyLeeKicks
                     var qflyTime = me.Distance(minion)/SpellManager.Q1.Speed*1000 + SpellManager.Q1.CastDelay*2 +
                                      100;
                     var alive = Prediction.Health.GetPrediction(minion, (int) Math.Ceiling(qflyTime)) >
-                                me.GetSpellDamage(minion, SpellSlot.Q)*2;
+                                me.GetSpellDamage(minion, SpellSlot.Q);
                     if (alive && minion.Distance(me) <= SpellManager.Q1.Range)
                         minList.Add(minion);
                 }

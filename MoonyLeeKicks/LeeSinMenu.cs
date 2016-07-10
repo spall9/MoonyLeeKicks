@@ -106,6 +106,7 @@ namespace MoonyLeeKicks
             insecExtensionsMenu.Add("dashInfo__Elo", new ComboBox("Target Elo", 1, "Bronze+", "Gold+"));
             insecExtensionsMenu.AddSeparator();
             insecExtensionsMenu.Add("useDashAnalysis", new CheckBox("Use Dash Analysis Data To Predict Dashes"));
+            insecExtensionsMenu.AddLabel("TURN OFF IN HIGH ELO");
             insecExtensionsMenu.Add("minPobabilityToDash", new Slider("Minimum Enemy Dash Probability to Assume A Dash", 70));
             insecExtensionsMenu.AddGroupLabel("________________________________________________");
             insecExtensionsMenu.AddSeparator();
