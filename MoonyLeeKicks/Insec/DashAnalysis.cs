@@ -63,13 +63,14 @@ namespace MoonyLeeKicks.Insec
 
         private static void ObjAiBaseOnOnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            if (GetLastQBuffEnemyHero() == null || !(sender is AIHeroClient) || sender.IsAlly)
+            if (GetLastQBuffEnemyHero() == null || !(sender is AIHeroClient) || sender.IsAlly || 
+                GetLastQBuffEnemyHero() != sender as AIHeroClient)
                 return;
 
-            DashAnalysisContainer container = enemies.First(x => x.Hero.NetworkId == sender.NetworkId);
-            DashInfo dashInfo = container.dashInfo;
+            DashAnalysisContainer container = enemies.FirstOrDefault(x => x.Hero.NetworkId == sender.NetworkId);
+            DashInfo dashInfo = container?.dashInfo;
 
-            if (args.Slot == dashInfo.slot)//dash cast
+            if (args.Slot == dashInfo?.slot)//dash cast
             {
                 container.DashCount++;
                 ReplaceContainerInList(container);
