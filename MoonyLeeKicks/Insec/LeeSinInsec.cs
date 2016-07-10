@@ -127,9 +127,9 @@ namespace MoonyLeeKicks
         /// <summary>
         /// 2 activations
         /// </summary>
-        private static int minEnergy = 80;
-        private static int minEnegeryFirstActivation = 50;
-        private static int LastQ1CastTick;
+        private int minEnergy = 80;
+        private int minEnegeryFirstActivation = 50;
+        public int LastQ1CastTick, LastQ2Tick;
         //TODO: pink ward jump for special champs
 
         private readonly AIHeroClient me;
@@ -146,11 +146,17 @@ namespace MoonyLeeKicks
 
         private void ObjAiBaseOnOnPlayAnimation(Obj_AI_Base sender, GameObjectPlayAnimationEventArgs args)
         {
-            if (!sender.IsMe || !LeeSinMenu.insecMenu["_insecKey"].Cast<KeyBind>().CurrentValue)
+            if (!sender.IsMe)
                 return;
 
             if (args.Animation == "Spell1b")
+                LastQ2Tick = Environment.TickCount;
+            if (args.Animation == "Spell1a")
+                LastQ1CastTick = Environment.TickCount;
+
+            if (args.Animation == "Spell1b")
             {
+                LastQ2Tick = Environment.TickCount;
                 //Last Q Enemy still valid if it was before
                 if (GetLastQBuffEnemyHero() != null)
                 {
@@ -163,8 +169,6 @@ namespace MoonyLeeKicks
                     extentedQ_object = true;
                 }
             }
-            if (args.Animation == "Spell1a")
-                LastQ1CastTick = Environment.TickCount;
         }
 
         private int lastInsecCheckTick;
@@ -388,7 +392,7 @@ namespace MoonyLeeKicks
         static Obj_AI_Base lastEnemyWithQBuff_object;
         private static float QbuffEndTime_hero, QbuffEndTime_object;
         private static bool extentedQ_hero, extentedQ_object;
-        static AIHeroClient GetLastQBuffEnemyHero()
+        public AIHeroClient GetLastQBuffEnemyHero()
         {
             var currentEnemyWithQBuff = ObjectManager.Get<Obj_AI_Base>()
                 .FirstOrDefault(x => x.IsEnemy && x.IsValid && x.HasBuff("BlindMonkQOne")) as AIHeroClient;
@@ -413,7 +417,7 @@ namespace MoonyLeeKicks
             return lastEnemyWithQBuff_hero;
         }
 
-        static Obj_AI_Base GetLastQBuffEnemyObject()
+        Obj_AI_Base GetLastQBuffEnemyObject()
         {
             var currentEnemyWithQBuff = ObjectManager.Get<Obj_AI_Base>()
                 .FirstOrDefault(x => x.IsEnemy && x.IsValid && x.HasBuff("BlindMonkQOne"));

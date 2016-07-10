@@ -186,7 +186,10 @@ namespace MoonyLeeKicks.Insec
 
         public static Vector2 GetDashWardPos(float normalDistance, AIHeroClient lastQBuffEnemy)
         {
-            var dashAnalysis = DashAnalysis.enemies.First(x => x.Hero.NetworkId == SelectionHandler.GetTarget.NetworkId);
+            var dashAnalysis = DashAnalysis.Enemies.FirstOrDefault(x => x.Hero.NetworkId == SelectionHandler.GetTarget.NetworkId);
+            if (dashAnalysis == null)
+                return Vector2.Zero;
+
             if (useAnalysis && dashAnalysis.DashProbability < minProb)
                 return Vector2.Zero;
 

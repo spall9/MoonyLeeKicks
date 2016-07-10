@@ -25,6 +25,8 @@ namespace MoonyLeeKicks
             }
         }
 
+        private static LeeSinInsec InsecInstance;
+
         static void Main(string[] args)
         {
             Loading.OnLoadingComplete += eventArgs =>
@@ -41,7 +43,7 @@ namespace MoonyLeeKicks
                     DashAnalysis.Init();
 
                     new MultiKick();
-                    new LeeSinInsec();
+                    InsecInstance = new LeeSinInsec();
                     new StarCombo();
                     new BubbaKush();
                     new Smite();
@@ -54,7 +56,14 @@ namespace MoonyLeeKicks
 
         private static void LeeSinOnUpdate(EventArgs args)
         {
-            if (SpellManager.R.IsReady() && LeeSinMenu.config["moonyLee_useRKs_General"].Cast<CheckBox>().CurrentValue)
+            if (LeeSinMenu.comboMenu["comboSytleSwitch"].Cast<KeyBind>().CurrentValue)
+            {
+                int comboMethod = LeeSinMenu.comboMenu["currentComboMethod"].Cast<Slider>().CurrentValue;
+                LeeSinMenu.comboMenu["currentComboMethod"].Cast<Slider>().CurrentValue = comboMethod == 0 ? 1 : 0;
+                LeeSinMenu.comboMenu["comboSytleSwitch"].Cast<KeyBind>().CurrentValue = false;
+            }
+
+            if (SpellManager.R.IsReady() && LeeSinMenu.miscMenu["useRKs_General"].Cast<CheckBox>().CurrentValue)
                 foreach (AIHeroClient killableEnemy in EntityManager.Heroes.Enemies.Where(x => x.IsValid && 
                     me.GetSpellDamage(x, SpellSlot.R) > x.Health && x.Distance(me) <= SpellManager.R.Range))
                 {
@@ -64,7 +73,14 @@ namespace MoonyLeeKicks
             switch (Orbwalker.ActiveModesFlags)
             {
                     case Orbwalker.ActiveModes.Combo:
-                        Combo();
+                    int comboMethod = LeeSinMenu.comboMenu["currentComboMethod"].Cast<Slider>().CurrentValue;
+                    if (comboMethod == 0)
+                        GankCombo();
+                    else
+                        FightCombo();
+                    break;
+                    case Orbwalker.ActiveModes.Harass:
+                        Harass();
                     break;
                     case Orbwalker.ActiveModes.Flee:
                         Flee();
@@ -76,6 +92,99 @@ namespace MoonyLeeKicks
                         JungleClear();
                     break;
             }
+        }
+
+        private static void Harass()
+        {
+            var target = TargetSelector.GetTarget(1000, DamageType.Magical) ?? TargetSelector.GetTarget(1000, DamageType.Physical);
+            var qPred = SpellManager.Q1.GetPrediction(target);
+
+            if (SpellManager.CanCastQ1 && me.Mana >= 50 && qPred.HitChance >= HitChance.High)
+                SpellManager.Q1.Cast(qPred.CastPosition);
+
+            if (SpellManager.CanCastE1 && me.Mana >= 50 && target.Distance(me) <= SpellManager.E1.Range)
+                SpellManager.E1.Cast(me.Position);
+        }
+
+        private static int lastWFightCombo, FightComboSpellCastTick;
+        private static void FightCombo()
+        {
+            if (Environment.TickCount - FightComboSpellCastTick <= 500)
+                return;
+
+            bool useQ = LeeSinMenu.comboMenu["useQFight"].Cast<CheckBox>().CurrentValue;
+            bool useW = LeeSinMenu.comboMenu["useWFight"].Cast<CheckBox>().CurrentValue;
+            bool useE = LeeSinMenu.comboMenu["useEFight"].Cast<CheckBox>().CurrentValue;
+            bool useR = LeeSinMenu.comboMenu["useRFight"].Cast<CheckBox>().CurrentValue;
+
+            var target = TargetSelector.GetTarget(1000, DamageType.Magical) ?? TargetSelector.GetTarget(1000, DamageType.Physical);
+            var qPred = SpellManager.Q1.GetPrediction(target);
+
+            bool cannotAA = !Orbwalker.CanAutoAttack || Orbwalker.CanBeAborted || target.Distance(me) > me.GetAutoAttackRange();
+            bool qProcess = !me.Spellbook.GetSpell(SpellSlot.Q).Name.Contains("One");
+            bool wProcess = !me.Spellbook.GetSpell(SpellSlot.W).Name.Contains("One");
+            bool eProcess = !me.Spellbook.GetSpell(SpellSlot.E).Name.Contains("One");
+            bool anythingProcessed = qProcess || wProcess || eProcess;
+
+            int maxPassiveStacks = me.Level < 6 ? 0 : 1;
+            bool wNotReady = !SpellManager.CanCastW1 && !SpellManager.CanCastW2;
+
+            if (!anythingProcessed && cannotAA && useQ && wNotReady && SpellManager.CanCastQ1 &&
+                me.Mana >= 50 && qPred.HitChance >= HitChance.High)
+            {
+                SpellManager.Q1.Cast(qPred.CastPosition);
+                FightComboSpellCastTick = Environment.TickCount;
+                return;
+            }
+            if (cannotAA && useQ && SpellManager.CanCastQ2 && PassiveStacks <= maxPassiveStacks)
+            {
+                SpellManager.Q2.Cast();
+                FightComboSpellCastTick = Environment.TickCount;
+                return;
+            }
+
+            if (!anythingProcessed && cannotAA && useW && SpellManager.CanCastW1 && Environment.TickCount - lastWFightCombo >= 1000 &&
+                target.Distance(me) <= me.GetAutoAttackRange())
+            {
+                SpellManager.W1.Cast(me);
+                lastWFightCombo = Environment.TickCount;
+                FightComboSpellCastTick = Environment.TickCount + 500;
+                return;
+            }
+            if (cannotAA && useW && SpellManager.CanCastW2 && PassiveStacks <= maxPassiveStacks &&
+                target.Distance(me) <= me.GetAutoAttackRange())
+            {
+                SpellManager.W2.Cast();
+                FightComboSpellCastTick = Environment.TickCount;
+                return;
+            }
+
+            if (!anythingProcessed && cannotAA && useE && SpellManager.CanCastE1 &&
+                target.Distance(me) <= SpellManager.E1.Range)
+            {
+                SpellManager.E1.Cast(me.Position);
+                FightComboSpellCastTick = Environment.TickCount;
+                return;
+            }
+            if (cannotAA && useE && SpellManager.CanCastE2 && PassiveStacks <= maxPassiveStacks &&
+                target.Distance(me) <= SpellManager.E2.Range)
+            {
+                SpellManager.E2.Cast(me.Position);
+                FightComboSpellCastTick = Environment.TickCount;
+                return;
+            }
+
+            if (useR && SpellManager.CanCastQ2 &&
+                InsecInstance.GetLastQBuffEnemyHero().Equals(target) &&
+                SpellManager.R.IsReady() && target.Distance(me) <= SpellManager.R.Range
+                && PassiveStacks <= maxPassiveStacks && cannotAA)
+                SpellManager.R.Cast(target);
+
+            if (useR && me.GetSpellDamage(target, SpellSlot.R) > target.Health && target.Distance(me) <= SpellManager.R.Range)
+                SpellManager.R.Cast(target);
+
+            if (cannotAA)
+                UseItems(LeeSinMenu.comboMenu["useItemsFight"].Cast<CheckBox>().CurrentValue, target);
         }
 
         static Obj_AI_Base GetAllyAsWard(Vector2 pos)
@@ -97,9 +206,9 @@ namespace MoonyLeeKicks
 
             if (targetMinion != null && targetMinion.IsValid)
             {
-                bool useQ = LeeSinMenu.config["moonyLee_useQJC"].Cast<CheckBox>().CurrentValue;
-                bool useW = LeeSinMenu.config["moonyLee_useWJC"].Cast<CheckBox>().CurrentValue;
-                bool useE = LeeSinMenu.config["moonyLee_useEJC"].Cast<CheckBox>().CurrentValue;
+                bool useQ = LeeSinMenu.jungleClearMenu["useQ"].Cast<CheckBox>().CurrentValue;
+                bool useW = LeeSinMenu.jungleClearMenu["useW"].Cast<CheckBox>().CurrentValue;
+                bool useE = LeeSinMenu.jungleClearMenu["useE"].Cast<CheckBox>().CurrentValue;
 
                 int maxPassiveStacks = me.Level < 6 ? 0 : 1;
                 maxPassiveStacks = me.Level > 15 ? 2 : maxPassiveStacks;
@@ -126,16 +235,16 @@ namespace MoonyLeeKicks
                 if (useE && SpellManager.CanCastE2 && PassiveStacks <= maxPassiveStacks)
                     SpellManager.E2.Cast(me.Position);
 
-                UseItems(LeeSinMenu.config["moonyLee_useItemsJC"].Cast<CheckBox>().CurrentValue, targetMinion);
+                UseItems(LeeSinMenu.jungleClearMenu["useItems"].Cast<CheckBox>().CurrentValue, targetMinion);
             }
         }
 
         private static int lastWCastWaveClear;
         private static void WaveClear()
         {
-            bool useQ = LeeSinMenu.config["moonyLee_useQWC"].Cast<CheckBox>().CurrentValue;
-            bool useW = LeeSinMenu.config["moonyLee_useQWC"].Cast<CheckBox>().CurrentValue;
-            bool useE = LeeSinMenu.config["moonyLee_useQWC"].Cast<CheckBox>().CurrentValue;
+            bool useQ = LeeSinMenu.waveClearMenu["useQ"].Cast<CheckBox>().CurrentValue;
+            bool useW = LeeSinMenu.waveClearMenu["useW"].Cast<CheckBox>().CurrentValue;
+            bool useE = LeeSinMenu.waveClearMenu["useE"].Cast<CheckBox>().CurrentValue;
 
             var targetMinion =
                 EntityManager.MinionsAndMonsters.EnemyMinions.Where(x => x.Distance(me) <= 500 && x.IsValid).OrderByDescending(x => x.Health).FirstOrDefault();
@@ -154,12 +263,14 @@ namespace MoonyLeeKicks
                     if (useQ && SpellManager.CanCastQ2 && PassiveStacks <= maxPassiveStacks)
                         SpellManager.Q2.Cast();
 
-                    if (useW && SpellManager.CanCastW1 && Environment.TickCount - lastWCastWaveClear >= 100)
+                    if (useW && SpellManager.CanCastW1 && Environment.TickCount - lastWCastWaveClear >= 100 &&
+                        targetMinion.Distance(me) <= me.GetAutoAttackRange())
                     {
                         SpellManager.W1.Cast(me);
                         lastWCastWaveClear = Environment.TickCount;
                     }
-                    if (useW && SpellManager.CanCastW2 && PassiveStacks <= maxPassiveStacks)
+                    if (useW && SpellManager.CanCastW2 && PassiveStacks <= maxPassiveStacks &&
+                        targetMinion.Distance(me) <= me.GetAutoAttackRange())
                         SpellManager.W2.Cast();
 
                     if (useE && SpellManager.CanCastE1 && 
@@ -168,7 +279,7 @@ namespace MoonyLeeKicks
                     if (useE && SpellManager.CanCastE2 && PassiveStacks <= maxPassiveStacks)
                         SpellManager.E2.Cast(me.Position);
 
-                    UseItems(LeeSinMenu.config["moonyLee_useItemsWC"].Cast<CheckBox>().CurrentValue, targetMinion);
+                    UseItems(LeeSinMenu.waveClearMenu["useItems"].Cast<CheckBox>().CurrentValue, targetMinion);
                 }
                 catch { }
             }
@@ -178,8 +289,8 @@ namespace MoonyLeeKicks
         {
             bool canWard = WardManager.CanCastWard;
             bool enoughMana = me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana;
-            bool doWardJump = LeeSinMenu.config["moonyLee_useWardJump"].Cast<CheckBox>().CurrentValue;
-            bool maxRange = LeeSinMenu.config["moonyLee_useWardJumpMaxRange"].Cast<CheckBox>().CurrentValue;
+            bool doWardJump = LeeSinMenu.miscMenu["useWardJump"].Cast<CheckBox>().CurrentValue;
+            bool maxRange = LeeSinMenu.miscMenu["useWardJumpMaxRange"].Cast<CheckBox>().CurrentValue;
 
             Vector2 maxRangeJumpPos = me.Position.To2D() +
                             (Game.CursorPos.To2D() - me.Position.To2D()).Normalized() * WardManager.WardRange;
@@ -200,13 +311,13 @@ namespace MoonyLeeKicks
             }
         }
 
-        private static void Combo()
+        private static void GankCombo()
         {
-            bool useQ = LeeSinMenu.config["moonyLee_useQ"].Cast<CheckBox>().CurrentValue;
-            bool useW = LeeSinMenu.config["moonyLee_useWGap"].Cast<CheckBox>().CurrentValue;
-            bool useE = LeeSinMenu.config["moonyLee_useE"].Cast<CheckBox>().CurrentValue;
-            bool ksR = LeeSinMenu.config["moonyLee_useRKs"].Cast<CheckBox>().CurrentValue;
-            bool useItems = LeeSinMenu.config["moonyLee_useItems"].Cast<CheckBox>().CurrentValue;
+            bool useQ = LeeSinMenu.comboMenu["useQ"].Cast<CheckBox>().CurrentValue;
+            bool useW = LeeSinMenu.comboMenu["useWGap"].Cast<CheckBox>().CurrentValue;
+            bool useE = LeeSinMenu.comboMenu["useE"].Cast<CheckBox>().CurrentValue;
+            bool ksR = LeeSinMenu.comboMenu["useRKs"].Cast<CheckBox>().CurrentValue;
+            bool useItems = LeeSinMenu.comboMenu["useItems"].Cast<CheckBox>().CurrentValue;
 
             var target = TargetSelector.GetTarget(1000, DamageType.Magical) ?? TargetSelector.GetTarget(1000, DamageType.Physical);
 
@@ -228,9 +339,12 @@ namespace MoonyLeeKicks
             if (SpellManager.CanCastE2 && Orbwalker.CanMove)
                 SpellManager.E2.Cast(me.Position);
 
-            bool canQFly = SpellManager.CanCastQ1 && target.Distance(me) <= 1300;
-            bool justJumpedWithQ = Environment.TickCount - WardManager._lastWardJumpTime <= 750;
-            if (target.Distance(me) > me.GetAutoAttackRange() && useW && !canQFly && !justJumpedWithQ)
+            bool canQFly = SpellManager.CanCastQ1 && target.Distance(me) <= 1300 && 
+                LeeSinMenu.comboMenu["noWAtQ1Fly"].Cast<CheckBox>().CurrentValue;
+            bool q2 = 
+                (Environment.TickCount - InsecInstance.LastQ2Tick <= 2000 || InsecInstance.GetLastQBuffEnemyHero() != null) && 
+                LeeSinMenu.comboMenu["noWAtQ2"].Cast<CheckBox>().CurrentValue;
+            if (target.Distance(me) > me.GetAutoAttackRange() && useW && !canQFly && !q2)
             {
                 //w gap
                 bool canWard = WardManager.CanCastWard;

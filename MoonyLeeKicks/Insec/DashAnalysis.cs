@@ -42,19 +42,26 @@ namespace MoonyLeeKicks.Insec
             public float DashProbability => Q2Count > 0 ? DashCount/Q2Count*100 : float.NaN;
         }
 
-        public static List<DashAnalysisContainer> enemies = new List<DashAnalysisContainer>(); 
+        /// <summary>
+        /// Only Contains enemies with dashes
+        /// </summary>
+        public static List<DashAnalysisContainer> Enemies = new List<DashAnalysisContainer>(); 
         public static void Init()
         {
-            enemies = EntityManager.Heroes.Enemies.
+            Enemies = EntityManager.Heroes.Enemies.
                 Where(x => ChampionDashes.DashInfos.Any(dashInf => dashInf.ChampionName == x.ChampionName)).
                     Select(x => new DashAnalysisContainer(x)).ToList();
 
 
             LeeSinMenu.DashAnalysisMenu.AddGroupLabel("Probability Of The Players To Dash Away In Insec");
-            foreach (DashAnalysisContainer dashAnalysisContainer in enemies)
+            foreach (DashAnalysisContainer dashAnalysisContainer in Enemies)
             {
-                LeeSinMenu.DashAnalysisMenu.Add(dashAnalysisContainer.MenuId, new CheckBox(dashAnalysisContainer.InfoText, false));
+                var checkBoxInstance = 
+                    LeeSinMenu.DashAnalysisMenu.Add(dashAnalysisContainer.MenuId, 
+                    new CheckBox(dashAnalysisContainer.InfoText, false));
                 LeeSinMenu.DashAnalysisMenu.AddSeparator();
+
+                checkBoxInstance.OnValueChange += (sender, args) => sender.CurrentValue = false;
             }
 
             Obj_AI_Base.OnProcessSpellCast += ObjAiBaseOnOnProcessSpellCast;
@@ -67,7 +74,7 @@ namespace MoonyLeeKicks.Insec
                 GetLastQBuffEnemyHero() != sender as AIHeroClient)
                 return;
 
-            DashAnalysisContainer container = enemies.FirstOrDefault(x => x.Hero.NetworkId == sender.NetworkId);
+            DashAnalysisContainer container = Enemies.FirstOrDefault(x => x.Hero.NetworkId == sender.NetworkId);
             DashInfo dashInfo = container?.dashInfo;
 
             if (args.Slot == dashInfo?.slot)//dash cast
@@ -108,7 +115,7 @@ namespace MoonyLeeKicks.Insec
                 if (GetLastQBuffEnemyHero() != null && GetLastQBuffEnemyHero().HasAntiInsecDashReady())
                 {
                     QbuffEndTime_hero += 3; //sec
-                    DashAnalysisContainer container = enemies.First(x => x.Hero.NetworkId == GetLastQBuffEnemyHero().NetworkId);
+                    DashAnalysisContainer container = Enemies.First(x => x.Hero.NetworkId == GetLastQBuffEnemyHero().NetworkId);
                     container.Q2Count++;
                     ReplaceContainerInList(container);
                 }
@@ -117,11 +124,11 @@ namespace MoonyLeeKicks.Insec
 
         static void ReplaceContainerInList(DashAnalysisContainer c)
         {
-            var itemToRemove = enemies.First(x => x.Hero.NetworkId == c.Hero.NetworkId);
-            enemies.Remove(itemToRemove);
+            var itemToRemove = Enemies.First(x => x.Hero.NetworkId == c.Hero.NetworkId);
+            Enemies.Remove(itemToRemove);
 
             LeeSinMenu.DashAnalysisMenu[c.MenuId].Cast<CheckBox>().DisplayName = c.InfoText;
-            enemies.Add(c);
+            Enemies.Add(c);
         }
     }
 }

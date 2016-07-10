@@ -5,39 +5,70 @@ namespace MoonyLeeKicks
 {
     static class LeeSinMenu
     {
-        public static Menu config, insecMenu, insecExtensionsMenu, multiRMenu, starComboMenu, bubbaKushMenu, smiteMenu,
+        public static void AddStringList(this Menu m, string uniqueId, string displayName, string[] values, int defaultValue)
+        {
+            var mode = m.Add(uniqueId, new Slider(displayName, defaultValue, 0, values.Length - 1));
+            mode.DisplayName = displayName + ": " + values[mode.CurrentValue];
+            mode.OnValueChange += delegate (ValueBase<int> sender, ValueBase<int>.ValueChangeArgs args)
+            {
+                sender.DisplayName = displayName + ": " + values[args.NewValue];
+            };
+        }
+
+        public static Menu config,
+            comboMenu, harassMenu, waveClearMenu, jungleClearMenu, miscMenu,
+            insecMenu, insecExtensionsMenu, multiRMenu, starComboMenu, bubbaKushMenu, smiteMenu,
             DashAnalysisMenu;
 
         private static Menu helpMenu;
         public static void Init()
         {
             config = MainMenu.AddMenu("MoonyLeeSin", "__MoonyLeeSin");
-            config.AddGroupLabel("Combo");
-            config.Add("moonyLee_useQ", new CheckBox("Use Q Combo"));
-            config.Add("moonyLee_useWGap", new CheckBox("Use W To GapClose Combo"));
-            config.Add("moonyLee_useE", new CheckBox("Use E Combo"));
-            config.Add("moonyLee_useRKs", new CheckBox("Killsteal R Combo", false));
-            config.Add("moonyLee_useItems", new CheckBox("Use Tiamat/Hydra Combo"));
-            config.AddSeparator();
+            config.AddGroupLabel("Most intelligent Lee Script");
+            config.AddGroupLabel("by DanThePman");
 
-            config.AddGroupLabel("WaveClear");
-            config.Add("moonyLee_useQWC", new CheckBox("Use Q WaveClear"));
-            config.Add("moonyLee_useWWC", new CheckBox("Use W WaveClear"));
-            config.Add("moonyLee_useEWC", new CheckBox("Use E WaveClear"));
-            config.Add("moonyLee_useItemsWC", new CheckBox("Use Tiamat/Hydra WaveClear"));
-            config.AddSeparator();
+            comboMenu = config.AddSubMenu("Combo", "ComboMenu");
+            comboMenu.AddGroupLabel("Gank Combo");
+            comboMenu.Add("useQ", new CheckBox("Use Q"));
+            comboMenu.Add("useWGap", new CheckBox("Use W To GapClose"));
+            comboMenu.Add("noWAtQ2", new CheckBox("Don't GapClose If Q2 Possible"));
+            comboMenu.Add("noWAtQ1Fly", new CheckBox("Wait For Q1 Before GapClose With W"));
+            comboMenu.Add("useE", new CheckBox("Use E"));
+            comboMenu.Add("useRKs", new CheckBox("Killsteal R", false));
+            comboMenu.Add("useItems", new CheckBox("Use Tiamat/Hydra"));
+            comboMenu.AddSeparator();
+            comboMenu.AddGroupLabel("Fight Combo");
+            comboMenu.Add("useQFight", new CheckBox("Use Q"));
+            comboMenu.Add("useWFight", new CheckBox("Use W"));
+            comboMenu.Add("useEFight", new CheckBox("Use E"));
+            comboMenu.Add("useRFight", new CheckBox("Use R"));
+            comboMenu.Add("useItemsFight", new CheckBox("Use Tiamat/Hydra"));
+            comboMenu.AddSeparator();
+            comboMenu.AddStringList("currentComboMethod", "Current Combo Style", new [] {"Gank", "Fight"}, 0);
+            comboMenu.Add("comboSytleSwitch",
+                new KeyBind("Switch Combo Style (Toggle)", false, KeyBind.BindTypes.PressToggle));
 
-            config.AddGroupLabel("JungleClear");
-            config.Add("moonyLee_useQJC", new CheckBox("Use Q JungleClear"));
-            config.Add("moonyLee_useWJC", new CheckBox("Use W JungleClear"));
-            config.Add("moonyLee_useEJC", new CheckBox("Use E JungleClear"));
-            config.Add("moonyLee_useItemsJC", new CheckBox("Use Tiamat/Hydra JungleClear"));
-            config.AddSeparator();
+            harassMenu = config.AddSubMenu("Harass", "HarassMenu");
+            harassMenu.Add("useQ", new CheckBox("Use Q1 Harass"));
+            harassMenu.Add("useE", new CheckBox("Use E Harass"));
 
-            config.AddGroupLabel("Misc");
-            config.Add("moonyLee_useWardJump", new CheckBox("Wardjump In Flee Mode"));
-            config.Add("moonyLee_useWardJumpMaxRange", new CheckBox("Use For Max Range"));
-            config.Add("moonyLee_useRKs_General", new CheckBox("Killsteal R If Possible", false));
+
+            waveClearMenu = config.AddSubMenu("WaveClear", "WaveClearMenu");
+            waveClearMenu.Add("useQ", new CheckBox("Use Q WaveClear"));
+            waveClearMenu.Add("useW", new CheckBox("Use W WaveClear"));
+            waveClearMenu.Add("useE", new CheckBox("Use E WaveClear"));
+            waveClearMenu.Add("useItems", new CheckBox("Use Tiamat/Hydra WaveClear"));
+
+            jungleClearMenu = config.AddSubMenu("JungleClear", "JungleClearMenu");
+            jungleClearMenu.Add("useQ", new CheckBox("Use Q JungleClear"));
+            jungleClearMenu.Add("useW", new CheckBox("Use W JungleClear"));
+            jungleClearMenu.Add("useE", new CheckBox("Use E JungleClear"));
+            jungleClearMenu.Add("useItems", new CheckBox("Use Tiamat/Hydra JungleClear"));
+
+            miscMenu = config.AddSubMenu("Misc", "MiscMenu");
+            miscMenu.Add("useWardJump", new CheckBox("Wardjump In Flee Mode"));
+            miscMenu.Add("useWardJumpMaxRange", new CheckBox("Use For Max Range"));
+            miscMenu.Add("useRKs_General", new CheckBox("Killsteal R If Possible", false));
 
 
 
