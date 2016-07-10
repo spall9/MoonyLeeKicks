@@ -14,25 +14,11 @@ namespace MoonyLeeKicks
             var dashInfo = DashInfos.FirstOrDefault(x => x.ChampionName == h.ChampionName);
             if (dashInfo == null)
                 return false;
-
-            bool isLeBlanc = h.ChampionName.Contains("LeBlanc");
             bool spellReady = h.Spellbook.GetSpell(dashInfo.slot).CooldownExpires - Game.Time <= 0 && 
                 h.Mana >= h.Spellbook.GetSpell(dashInfo.slot).SData.Mana;
             //Distortion
 
-            if (!isLeBlanc)
-                return spellReady;
-            else
-            {
-                bool rReady = h.Spellbook.GetSpell(SpellSlot.R).CooldownExpires - Game.Time <= 0 &&
-                    h.Mana >= h.Spellbook.GetSpell(SpellSlot.R).SData.Mana;
-                bool wAsR = h.Spellbook.GetSpell(SpellSlot.R).SData.Name.ToLower().Contains("distortion");
-
-                if (rReady && wAsR)
-                    return true;
-
-                return spellReady;
-            }
+            return spellReady;
         }
 
         public static void Init()
@@ -53,7 +39,7 @@ namespace MoonyLeeKicks
             DashInfos.Add(new DashInfo(SpellSlot.E, "Kindred", 340));
             DashInfos.Add(new DashInfo(SpellSlot.W, "LeBlanc", 600));
             DashInfos.Add(new DashInfo(SpellSlot.E, "Lucian", 425));
-            DashInfos.Add(new DashInfo(SpellSlot.W, "Nidalee", 375));
+            //DashInfos.Add(new DashInfo(SpellSlot.W, "Nidalee", 375));
             DashInfos.Add(new DashInfo(SpellSlot.E, "Quinn", 525));
             DashInfos.Add(new DashInfo(SpellSlot.E, "Riven", 325));
             DashInfos.Add(new DashInfo(SpellSlot.Q, "Sejuani", 650));

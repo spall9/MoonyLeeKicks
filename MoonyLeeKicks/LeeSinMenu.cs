@@ -66,10 +66,10 @@ namespace MoonyLeeKicks
             insecExtensionsMenu.AddSeparator();
 
             insecExtensionsMenu.AddGroupLabel("Anti Dash");
-            insecExtensionsMenu.Add("attendDashes", new KeyBind("Attend dashes", true, KeyBind.BindTypes.PressToggle));
+            insecExtensionsMenu.Add("attendDashes", new CheckBox("Enabled"));
             insecExtensionsMenu.AddLabel("Only Calculates Extra Range If The Target Has Q Buff. Ignores If Jumps Over Minions");
-            insecExtensionsMenu.Add("automatedDashForecast", new CheckBox("Automatic Dash Forecast (BETA)"));
-            insecExtensionsMenu.AddLabel("Automatically Decides If And Where The Target Would Dash To");
+            insecExtensionsMenu.Add("dashForcecastMethod", new ComboBox("Dash Prediction Method", 1, 
+                "Prospective Forecast", "Wait For Dash Cast"));
             insecExtensionsMenu.AddSeparator();
             insecExtensionsMenu.Add("dashInfo__Elo", new ComboBox("Target Elo", 1, "Bronze+", "Gold+"));
             insecExtensionsMenu.AddSeparator();

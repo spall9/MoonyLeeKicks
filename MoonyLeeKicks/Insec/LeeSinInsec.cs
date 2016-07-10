@@ -50,13 +50,11 @@ namespace MoonyLeeKicks
                 Vector2 wardPlacePos = allyPos + (target.Position.To2D() - allyPos).Normalized() *
                                    (target.Distance(allyPos) + GetSpaceDistToEnemy());
 
-                bool hasQBuff = lastQBuffEnemy != null && lastQBuffEnemy == target && lastQBuffEnemy.IsValid;
-                bool attendDash = LeeSinMenu.insecExtensionsMenu["attendDashes"].Cast<KeyBind>().CurrentValue ||
-                    LeeSinMenu.insecExtensionsMenu["automatedDashForecast"].Cast<CheckBox>().CurrentValue;
-                bool hasDash = target.HasAntiInsecDashReady();
-                if (hasDash && attendDash && hasQBuff)
+                
+                bool attendDash = LeeSinMenu.insecExtensionsMenu["attendDashes"].Cast<CheckBox>().CurrentValue;
+                if (attendDash)
                 {
-                    var predicedDashWardPos = AntiDash.CalculateWardPositionAfterDash(allyPos, GetSpaceDistToEnemy());
+                    var predicedDashWardPos = AntiDash.GetDashWardPos(GetSpaceDistToEnemy(), lastQBuffEnemy);
                     if (!predicedDashWardPos.IsZero)
                         wardPlacePos = predicedDashWardPos;
                 }
@@ -95,9 +93,9 @@ namespace MoonyLeeKicks
             }
         }
 
-        private static class InsecSolution
+        public static class InsecSolution
         {
-            static InsecSolutionType lastType = InsecSolutionType.NoSolutionFound;
+            public static InsecSolutionType lastType = InsecSolutionType.NoSolutionFound;
 
             /*Ward + Flash is not a solution only, its dicided into 2 parts*/
             public enum InsecSolutionType
@@ -105,7 +103,8 @@ namespace MoonyLeeKicks
                 NoSolutionFound,
                 WardJump,
                 Flash,
-                MoonSec
+                MoonSec,
+                WaitForDashCast
             }
             public static void FoundSolution(InsecSolutionType type)
             {
@@ -154,9 +153,15 @@ namespace MoonyLeeKicks
             {
                 //Last Q Enemy still valid if it was before
                 if (GetLastQBuffEnemyHero() != null)
-                    QbuffEndTime_hero += 3;//sec
+                {
+                    QbuffEndTime_hero += 3; //sec
+                    extentedQ_hero = true;
+                }
                 if (GetLastQBuffEnemyObject() != null)
-                    QbuffEndTime_object += 3;//sec
+                {
+                    QbuffEndTime_object += 3; //sec
+                    extentedQ_object = true;
+                }
             }
             if (args.Animation == "Spell1a")
                 LastQ1CastTick = Environment.TickCount;
@@ -336,8 +341,10 @@ namespace MoonyLeeKicks
             catch { }
         }
 
-        private void CheckWardKick(Vector2 wardPlacePos, AIHeroClient target)
+        private void CheckWardKick(Vector2 wardPlacePos)
         {
+            AIHeroClient target = SelectionHandler.GetTarget;
+
             var allyJump = GetAllyAsWard();
             var allyJumpValid = allyJump != null && allyJump.IsValid;
             var canWardJump = (WardManager.CanCastWard || allyJumpValid) && SpellManager.CanCastW1 &&
@@ -359,8 +366,9 @@ namespace MoonyLeeKicks
             }
         }
 
-        private void CheckFlashKick(Vector2 wardPlacePos, AIHeroClient target)
+        private void CheckFlashKick(Vector2 wardPlacePos)
         {
+            AIHeroClient target = SelectionHandler.GetTarget;
             var canFlash = SpellManager.FlashReady;
 
             if (me.Distance(wardPlacePos) <= SpellManager.Flash.Range && canFlash)
@@ -377,7 +385,9 @@ namespace MoonyLeeKicks
         }
 
         private static AIHeroClient lastEnemyWithQBuff_hero;
-        private static float QbuffEndTime_hero;
+        static Obj_AI_Base lastEnemyWithQBuff_object;
+        private static float QbuffEndTime_hero, QbuffEndTime_object;
+        private static bool extentedQ_hero, extentedQ_object;
         static AIHeroClient GetLastQBuffEnemyHero()
         {
             var currentEnemyWithQBuff = ObjectManager.Get<Obj_AI_Base>()
@@ -387,14 +397,22 @@ namespace MoonyLeeKicks
                 lastEnemyWithQBuff_hero = currentEnemyWithQBuff;
                 QbuffEndTime_hero = lastEnemyWithQBuff_hero.GetBuff("BlindMonkQOne").EndTime;
             }
+
+            if (extentedQ_hero && lastEnemyWithQBuff_hero != null &&
+                lastEnemyWithQBuff_hero.Distance(ObjectManager.Player) <= 80)
+            {
+                QbuffEndTime_hero = 0;
+            }
+
             if (lastEnemyWithQBuff_hero != null && Game.Time >= QbuffEndTime_hero)
+            {
                 lastEnemyWithQBuff_hero = null;
+                extentedQ_hero = false;
+            }
 
             return lastEnemyWithQBuff_hero;
         }
 
-        private static Obj_AI_Base lastEnemyWithQBuff_object;
-        private static float QbuffEndTime_object;
         static Obj_AI_Base GetLastQBuffEnemyObject()
         {
             var currentEnemyWithQBuff = ObjectManager.Get<Obj_AI_Base>()
@@ -404,8 +422,18 @@ namespace MoonyLeeKicks
                 lastEnemyWithQBuff_object = currentEnemyWithQBuff;
                 QbuffEndTime_object = lastEnemyWithQBuff_object.GetBuff("BlindMonkQOne").EndTime;
             }
+
+            if (extentedQ_object && lastEnemyWithQBuff_object != null &&
+                lastEnemyWithQBuff_object.Distance(ObjectManager.Player) <= 80)
+            {
+                QbuffEndTime_object = 0;
+            }
+
             if (lastEnemyWithQBuff_object != null && Game.Time >= QbuffEndTime_object)
+            {
                 lastEnemyWithQBuff_object = null;
+                extentedQ_object = false;
+            }
 
             return lastEnemyWithQBuff_object;
         }
@@ -443,6 +471,14 @@ namespace MoonyLeeKicks
                 else /*flash -> ally w to reach wardPos*/
                     SpellManager.Flash.Cast(wardPlacePos.To3D());
             }
+        }
+
+        private void CheckWaitForDashCast(Vector2 wardPlacePos)
+        {
+            if (!wardPlacePos.IsZero) //dash has been exectued and end position is determinded
+                InsecSolution.ResetSolution();// let the other combos do the job
+
+            Core.DelayAction(InsecSolution.ResetSolution, 3000);
         }
 
         private bool moonSecActive;
@@ -511,9 +547,11 @@ namespace MoonyLeeKicks
                 return;
 
             if (InsecSolution.CanContinueSearchingFor(InsecSolution.InsecSolutionType.WardJump))
-                CheckWardKick(wardPlacePos, target);
+                CheckWardKick(wardPlacePos);
             if (InsecSolution.CanContinueSearchingFor(InsecSolution.InsecSolutionType.Flash))
-                CheckFlashKick(wardPlacePos, target);
+                CheckFlashKick(wardPlacePos);
+            if (InsecSolution.CanContinueSearchingFor(InsecSolution.InsecSolutionType.WaitForDashCast))
+                CheckWaitForDashCast(wardPlacePos);
 
             CheckWardFlashKick(wardPlacePos);
 

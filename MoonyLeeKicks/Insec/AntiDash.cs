@@ -24,10 +24,12 @@ namespace MoonyLeeKicks.Insec
             LinearyAwayWallCollision
         }
 
-        static bool enabled => LeeSinMenu.insecExtensionsMenu["attendDashes"].Cast<KeyBind>().CurrentValue;
+        static bool enabled => LeeSinMenu.insecExtensionsMenu["attendDashes"].Cast<CheckBox>().CurrentValue;
 
-        private static bool automated
-            => LeeSinMenu.insecExtensionsMenu["automatedDashForecast"].Cast<CheckBox>().CurrentValue;
+        private static bool useForecast
+            => LeeSinMenu.insecExtensionsMenu["dashForcecastMethod"].Cast<ComboBox>().CurrentValue == 0;
+
+        private static bool waitForCast => !useForecast;
 
         private static Elo targetElo
             =>
@@ -35,13 +37,13 @@ namespace MoonyLeeKicks.Insec
                     ? Elo.Low
                     : Elo.AveragePlus;
 
-        public static Vector2 CalculateWardPositionAfterDash(Vector2 SelectedAllyPos,
-            float normalDistance)
+        static Vector2 CalculateWardPositionAfterDash_Forecasted(float normalDistance)
         {
             AIHeroClient target = SelectionHandler.GetTarget;
+            Vector2 SelectedAllyPos = SelectionHandler.GetAllyPos;
 
             var dashInfo = ChampionDashes.DashInfos.FirstOrDefault(x => x.ChampionName == target.ChampionName);
-            if (dashInfo == null || targetElo == Elo.Low || !enabled)
+            if (dashInfo == null || !enabled)
                 return Vector2.Zero;
 
             Vector2 dashEndPos = Vector2.Zero;
@@ -95,7 +97,7 @@ namespace MoonyLeeKicks.Insec
                 }
             }
 
-            if (!automated)
+            if (!useForecast)
                 dashEndPos = dashEndPosOP_LinearlyAway;
             Vector2 allyDashEndPos = dashEndPos - SelectedAllyPos;
             float allyDashEndPos_Distance = SelectedAllyPos.Distance(dashEndPos);
@@ -150,6 +152,47 @@ namespace MoonyLeeKicks.Insec
             float y = origin.Y + (float)(radius * Math.Sin(angleInDegrees * Math.PI / 180));
 
             return new Vector2(x, y);
+        }
+
+        private static bool dashGotCasted;
+        private static Vector2 LastDashCastPos;
+        public static void ObjAiBaseOnOnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
+        {
+            if (LeeSinInsec.InsecSolution.lastType == LeeSinInsec.InsecSolution.InsecSolutionType.WaitForDashCast)
+            {
+                var target = SelectionHandler.GetTarget;
+                var dashInfo = ChampionDashes.DashInfos.FirstOrDefault(x => x.ChampionName == target.ChampionName);
+                if (dashInfo == null) //target switched, new one has no dash
+                {
+                    LeeSinInsec.InsecSolution.ResetSolution();
+                    dashGotCasted = false;
+                    return;
+                }
+
+                if (sender == target && args.Slot == dashInfo.slot)
+                {
+                    LastDashCastPos = args.End.To2D();
+                    dashGotCasted = true;
+                    Core.DelayAction(() => dashGotCasted = false, 3000);
+                }
+            }
+        }
+
+        public static Vector2 GetDashWardPos(float normalDistance, AIHeroClient lastQBuffEnemy)
+        {
+            if (!enabled || targetElo == Elo.Low)
+                return Vector2.Zero;
+
+            var target = SelectionHandler.GetTarget;
+            bool hasQBuff = lastQBuffEnemy != null && lastQBuffEnemy == target && lastQBuffEnemy.IsValid;
+            bool hasDash = target.HasAntiInsecDashReady();
+
+            if (hasQBuff && hasDash && useForecast)
+                return CalculateWardPositionAfterDash_Forecasted(normalDistance);
+
+            if (hasQBuff && hasDash && waitForCast)
+                LeeSinInsec.InsecSolution.FoundSolution(LeeSinInsec.InsecSolution.InsecSolutionType.WaitForDashCast);
+            return dashGotCasted ? LastDashCastPos : Vector2.Zero;
         }
     }
 }

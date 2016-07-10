@@ -7,6 +7,7 @@ using EloBuddy.SDK.Enumerations;
 using EloBuddy.SDK.Events;
 using EloBuddy.SDK.Menu.Values;
 using MoonyLeeKicks.Extras;
+using MoonyLeeKicks.Insec;
 using SharpDX;
 
 namespace MoonyLeeKicks
@@ -44,6 +45,7 @@ namespace MoonyLeeKicks
                     new BubbaKush();
                     new Smite();
 
+                    Obj_AI_Base.OnProcessSpellCast += AntiDash.ObjAiBaseOnOnProcessSpellCast;
                     Game.OnUpdate += LeeSinOnUpdate;
                 }
             };
