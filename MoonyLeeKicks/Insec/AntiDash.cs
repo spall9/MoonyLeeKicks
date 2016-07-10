@@ -192,7 +192,12 @@ namespace MoonyLeeKicks.Insec
 
             if (hasQBuff && hasDash && waitForCast)
                 LeeSinInsec.InsecSolution.FoundSolution(LeeSinInsec.InsecSolution.InsecSolutionType.WaitForDashCast);
-            return dashGotCasted ? LastDashCastPos : Vector2.Zero;
+
+            if (!dashGotCasted)
+                return Vector2.Zero;
+
+            return SelectionHandler.GetAllyPos.Extend(LastDashCastPos,
+                SelectionHandler.GetAllyPos.Distance(LastDashCastPos) + normalDistance);
         }
     }
 }
