@@ -53,7 +53,7 @@ namespace MoonyLeeKicks.Insec
                     Select(x => new DashAnalysisContainer(x)).ToList();
 
 
-            LeeSinMenu.DashAnalysisMenu.AddGroupLabel("Probability Of The Players To Dash Away In Insec");
+            LeeSinMenu.DashAnalysisMenu.AddGroupLabel("Probability Of The Players To Dash Away In Insec Mode");
             foreach (DashAnalysisContainer dashAnalysisContainer in Enemies)
             {
                 var checkBoxInstance = 
