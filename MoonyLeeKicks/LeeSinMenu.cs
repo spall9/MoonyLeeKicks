@@ -80,7 +80,7 @@ namespace MoonyLeeKicks
             insecMenu.Add("wardDistanceToTarget", new Slider("Ward Distance To Enemy", 230, 200, 300));
             insecMenu.AddSeparator();
 
-            insecMenu.Add("_insecKey", new KeyBind("LeeSinInsec Key", false, KeyBind.BindTypes.HoldActive));
+            insecMenu.Add("_insecKey", new KeyBind("Lee Sin Insec Key", false, KeyBind.BindTypes.HoldActive));
             insecMenu.Add("moonSec", new CheckBox("Enable MoonSec", false));
             insecMenu.AddLabel("^ For Fancy Looking Purpose Only (Could Mess Up!) ^");
             insecMenu.AddSeparator();
