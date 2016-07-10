@@ -56,12 +56,8 @@ namespace MoonyLeeKicks.Insec
             LeeSinMenu.DashAnalysisMenu.AddGroupLabel("Probability Of The Players To Dash Away In Insec Mode");
             foreach (DashAnalysisContainer dashAnalysisContainer in Enemies)
             {
-                var checkBoxInstance = 
-                    LeeSinMenu.DashAnalysisMenu.Add(dashAnalysisContainer.MenuId, 
-                    new CheckBox(dashAnalysisContainer.InfoText, false));
+                LeeSinMenu.DashAnalysisMenu.Add(dashAnalysisContainer.MenuId, new CheckBox(dashAnalysisContainer.InfoText, false));
                 LeeSinMenu.DashAnalysisMenu.AddSeparator();
-
-                checkBoxInstance.OnValueChange += (sender, args) => sender.CurrentValue = false;
             }
             if (Enemies.Count == 0)
                 LeeSinMenu.DashAnalysisMenu.AddGroupLabel("Empty - In This Game No Enemy Has A Dash");
