@@ -550,7 +550,7 @@ namespace MoonyLeeKicks
                 CheckWardKick(wardPlacePos);
             if (InsecSolution.CanContinueSearchingFor(InsecSolution.InsecSolutionType.Flash))
                 CheckFlashKick(wardPlacePos);
-            if (InsecSolution.CanContinueSearchingFor(InsecSolution.InsecSolutionType.WaitForDashCast))
+            if (InsecSolution.lastType == InsecSolution.InsecSolutionType.WaitForDashCast)
                 CheckWaitForDashCast(wardPlacePos);
 
             CheckWardFlashKick(wardPlacePos);
