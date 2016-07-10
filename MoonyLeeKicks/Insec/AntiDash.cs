@@ -29,6 +29,12 @@ namespace MoonyLeeKicks.Insec
         private static bool useForecast
             => LeeSinMenu.insecExtensionsMenu["dashForcecastMethod"].Cast<ComboBox>().CurrentValue == 0;
 
+        private static bool useAnalysis
+            => LeeSinMenu.insecExtensionsMenu["useDashAnalysis"].Cast<CheckBox>().CurrentValue;
+
+        private static int minProb
+            => LeeSinMenu.insecExtensionsMenu["minPobabilityToDash"].Cast<Slider>().CurrentValue;
+
         private static bool waitForCast => !useForecast;
 
         private static Elo targetElo
@@ -180,7 +186,12 @@ namespace MoonyLeeKicks.Insec
 
         public static Vector2 GetDashWardPos(float normalDistance, AIHeroClient lastQBuffEnemy)
         {
-            if (!enabled || targetElo == Elo.Low)
+            var dashAnalysis = DashAnalysis.enemies.First(x => x.Hero.NetworkId == SelectionHandler.GetTarget.NetworkId);
+            if (useAnalysis && dashAnalysis.DashProbability < minProb)
+                return Vector2.Zero;
+
+            bool lowElo = targetElo == Elo.Low && (!useAnalysis || dashAnalysis.NotEnoughData);
+            if (!enabled || lowElo)
                 return Vector2.Zero;
 
             var target = SelectionHandler.GetTarget;

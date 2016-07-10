@@ -5,7 +5,8 @@ namespace MoonyLeeKicks
 {
     static class LeeSinMenu
     {
-        public static Menu config, insecMenu, insecExtensionsMenu, multiRMenu, starComboMenu, bubbaKushMenu, smiteMenu;
+        public static Menu config, insecMenu, insecExtensionsMenu, multiRMenu, starComboMenu, bubbaKushMenu, smiteMenu,
+            DashAnalysisMenu;
 
         private static Menu helpMenu;
         public static void Init()
@@ -73,6 +74,8 @@ namespace MoonyLeeKicks
             insecExtensionsMenu.AddSeparator();
             insecExtensionsMenu.Add("dashInfo__Elo", new ComboBox("Target Elo", 1, "Bronze+", "Gold+"));
             insecExtensionsMenu.AddSeparator();
+            insecExtensionsMenu.Add("useDashAnalysis", new CheckBox("Use Dash Analysis Data To Predict Dashes"));
+            insecExtensionsMenu.Add("minPobabilityToDash", new Slider("Minimum Enemy Dash Probability to Assume A Dash", 70));
             insecExtensionsMenu.AddGroupLabel("________________________________________________");
             insecExtensionsMenu.AddSeparator();
 
@@ -95,8 +98,10 @@ namespace MoonyLeeKicks
             insecExtensionsMenu.Add("onlyQ2IfNeeded", new CheckBox("Better Q2 Checks"));
             insecExtensionsMenu.AddLabel("Checks Again If Q2 Makes Sense Or If The Target Is Too Far Away");
             insecExtensionsMenu.AddSeparator();
-            
 
+
+
+            DashAnalysisMenu = config.AddSubMenu("DashAnalysis", "DashAnalysisMenu");
 
 
 

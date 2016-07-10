@@ -38,6 +38,7 @@ namespace MoonyLeeKicks
                     WardManager.Init();
                     SpellManager.Init();
                     ChampionDashes.Init();
+                    DashAnalysis.Init();
 
                     new MultiKick();
                     new LeeSinInsec();
