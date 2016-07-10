@@ -54,8 +54,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extras\Smite.cs" />
+    <Compile Include="Insec\AntiDash.cs" />
     <Compile Include="Insec\DashInfo.cs" />
     <Compile Include="Insec\LeeSinInsec.cs" />
+    <Compile Include="Insec\MEC.cs" />
     <Compile Include="LeeSinMenu.cs" />
     <Compile Include="MultiKick.cs" />
     <Compile Include="Program.cs" />

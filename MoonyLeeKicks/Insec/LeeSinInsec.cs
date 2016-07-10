@@ -7,6 +7,7 @@ using EloBuddy.SDK;
 using EloBuddy.SDK.Enumerations;
 using EloBuddy.SDK.Menu.Values;
 using EloBuddy.SDK.Rendering;
+using MoonyLeeKicks.Insec;
 using SharpDX;
 using Color = System.Drawing.Color;
 
@@ -30,6 +31,7 @@ namespace MoonyLeeKicks
                     LeeSinMenu.insecExtensionsMenu["useMovementPrediction"].Cast<CheckBox>().CurrentValue;
                 return targetRunningAway && useMovementPrediction ? 300 : LeeSinMenu.insecMenu["wardDistanceToTarget"].Cast<Slider>().CurrentValue;
             }
+
             /// <summary>
             /// op vec
             /// </summary>
@@ -49,10 +51,15 @@ namespace MoonyLeeKicks
                                    (target.Distance(allyPos) + GetSpaceDistToEnemy());
 
                 bool hasQBuff = lastQBuffEnemy != null && lastQBuffEnemy == target && lastQBuffEnemy.IsValid;
-                bool attendDash = LeeSinMenu.insecExtensionsMenu["attendDashes"].Cast<KeyBind>().CurrentValue;
+                bool attendDash = LeeSinMenu.insecExtensionsMenu["attendDashes"].Cast<KeyBind>().CurrentValue ||
+                    LeeSinMenu.insecExtensionsMenu["automatedDashForecast"].Cast<CheckBox>().CurrentValue;
                 bool hasDash = target.HasAntiInsecDashReady();
                 if (hasDash && attendDash && hasQBuff)
-                    wardPlacePos = target.CalculateWardPositionAfterDash(allyPos, GetSpaceDistToEnemy());
+                {
+                    var predicedDashWardPos = AntiDash.CalculateWardPositionAfterDash(allyPos, GetSpaceDistToEnemy());
+                    if (!predicedDashWardPos.IsZero)
+                        wardPlacePos = predicedDashWardPos;
+                }
 
                 Vector3 targetPosition = allyPos.To3D() +
                                          (wardPlacePos.To3D() - allyPos.To3D()).Normalized()*

@@ -68,8 +68,14 @@ namespace MoonyLeeKicks
             insecExtensionsMenu.AddGroupLabel("Anti Dash");
             insecExtensionsMenu.Add("attendDashes", new KeyBind("Attend dashes", true, KeyBind.BindTypes.PressToggle));
             insecExtensionsMenu.AddLabel("Only Calculates Extra Range If The Target Has Q Buff. Ignores If Jumps Over Minions");
+            insecExtensionsMenu.Add("automatedDashForecast", new CheckBox("Automatic Dash Forecast (BETA)"));
+            insecExtensionsMenu.AddLabel("Automatically Decides If And Where The Target Would Dash To");
             insecExtensionsMenu.AddSeparator();
-            
+            insecExtensionsMenu.Add("dashInfo__Elo", new ComboBox("Target Elo", 1, "Bronze+", "Gold+"));
+            insecExtensionsMenu.AddSeparator();
+            insecExtensionsMenu.AddGroupLabel("________________________________________________");
+            insecExtensionsMenu.AddSeparator();
+
 
             insecExtensionsMenu.Add("waitForQBefore_WardFlashKick", new CheckBox("Do Not Execute Instant Insec", false));
             insecExtensionsMenu.AddLabel("Wait For Using Q Before Instantly Do Ward->Flash->Kick");
