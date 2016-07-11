@@ -15,16 +15,18 @@ namespace MoonyLeeKicks.Extras
         public static Geometry.Polygon GetDetailedPolygon(this Geometry.Polygon.Rectangle p)
         {
             Geometry.Polygon detailedRectangle = new Geometry.Polygon();
-            for (int i = 0; i < p.Points.Count - 1; i++)
+            for (int i = 0; i < p.Points.Count; i += 2)
             {
                 var point = p.Points[i];
-                var nextPoint = p.Points[i + 1];
+                var nextPoint = i == p.Points.Count - 1 ? p.Points[0] : p.Points[i + 1];
+                detailedRectangle.Add(nextPoint);
 
-                for (float scaling = 1; scaling >= 0; scaling-=0.1f)
+                for (float scaling = 1; scaling >= 0; scaling -= 0.1f)
                 {
-                    var detailedPoint = point + (nextPoint - point)*scaling;
+                    var detailedPoint = point + (nextPoint - point) * scaling;
                     detailedRectangle.Add(detailedPoint);
                 }
+                detailedRectangle.Add(point);
             }
             return detailedRectangle;
         }
