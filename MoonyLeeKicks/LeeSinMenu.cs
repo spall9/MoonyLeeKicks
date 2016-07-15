@@ -128,10 +128,6 @@ namespace MoonyLeeKicks
             insecExtensionsMenu.AddLabel("If The Target Is Running Away, The Ward Distance To It Increases");
             insecExtensionsMenu.AddSeparator();
 
-            insecExtensionsMenu.Add("onlyQ2IfNeeded", new CheckBox("Better Q2 Checks"));
-            insecExtensionsMenu.AddLabel("Checks Again If Q2 Makes Sense Or If The Target Is Too Far Away");
-            insecExtensionsMenu.AddSeparator();
-
 
 
             DashAnalysisMenu = config.AddSubMenu("DashAnalysis", "DashAnalysisMenu");
@@ -209,6 +205,7 @@ namespace MoonyLeeKicks
 
 
             helpMenu = config.AddSubMenu("Help", "helpMenu");
+            helpMenu.AddGroupLabel("Found A Bug? Scroll down");
             helpMenu.AddGroupLabel("How to insec");
             helpMenu.AddLabel("1. Make sure that insec spells are ready (at least R->W->Ward or R->Flash)", 35);
             helpMenu.AddLabel("2. Select enemy (blue circle)", 35);
@@ -216,14 +213,17 @@ namespace MoonyLeeKicks
             helpMenu.AddLabel("Afterwards, a white arrow from the enemy to the target will be drawn", 35);
             helpMenu.AddLabel("4. Press insec key and hold it down", 35);
             helpMenu.AddLabel("5. To cancel the insec, release the button", 35);
-            helpMenu.AddSeparator(10);
+            helpMenu.AddSeparator();
             helpMenu.AddGroupLabel("Error?");
-            helpMenu.AddLabel("At insec: If your spells are not ready or you have not selected a valid target/ally", 35);
+            helpMenu.AddGroupLabel("For Insec:");
+            helpMenu.AddLabel("If your spells are not ready or you have not selected a valid target/ally", 35);
             helpMenu.AddLabel("          then a red font will be drawn below your hero to inform you.", 35);
-            helpMenu.AddSeparator(5);
-            helpMenu.AddLabel("Jungle- or WaveClear does not work: Do not bind them to the same key", 35);
-            helpMenu.AddSeparator(5);
-            helpMenu.AddLabel("Anything still does not work: Reload the addon", 35);
+            helpMenu.AddSeparator();
+            helpMenu.AddGroupLabel("For Jungle- or WaveClear: Do not bind them to the same key");
+            helpMenu.AddSeparator();
+            helpMenu.AddGroupLabel("For Bubba Kush: Select a target and make sure your distance to it is <= WardRange");
+            helpMenu.AddSeparator();
+            helpMenu.AddGroupLabel("Anything still does not work: Reload the addon");
         }
     }
 }

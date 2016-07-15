@@ -96,7 +96,11 @@ namespace MoonyLeeKicks.Extras
 
             Vector2 flashPos = GetFlashPos();
             if (!flashPos.IsZero)
-                Core.RepeatAction(() => SpellManager.Flash.Cast(flashPos.To3D()), 80, 1000);
+                Core.RepeatAction(() =>
+                {
+                    if (SpellManager.FlashReady)
+                        SpellManager.Flash.Cast(flashPos.To3D());
+                }, 80, 1000);
             else
             {
                 args.Process = false;
