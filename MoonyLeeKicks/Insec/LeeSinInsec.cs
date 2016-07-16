@@ -17,19 +17,9 @@ namespace MoonyLeeKicks
     {
         private static class WardJumpPosition
         {
-            static float GetSpaceDistToEnemy()
+            static float GetSpaceDistToEnemy(float extraRange = 0)
             {
-                var target = SelectionHandler.GetTarget;
-                var predPos = Prediction.Position.PredictUnitPosition(target, 1000);
-                var myDirection = ObjectManager.Player.Position.To2D() + 500 * ObjectManager.Player.Direction.To2D().Perpendicular();
-                var targetDirection = target.Position.To2D() + 500 * target.Direction.To2D().Perpendicular();
-                float angle = (myDirection - ObjectManager.Player.Position.To2D()).AngleBetween(
-                    targetDirection - target.Position.To2D());
-                bool targetRunningAway = angle <= 10 &&
-                    predPos.Distance(ObjectManager.Player.Position) > target.Distance(ObjectManager.Player);
-                bool useMovementPrediction =
-                    LeeSinMenu.insecExtensionsMenu["useMovementPrediction"].Cast<CheckBox>().CurrentValue;
-                return targetRunningAway && useMovementPrediction ? 350 : LeeSinMenu.insecMenu["wardDistanceToTarget"].Cast<Slider>().CurrentValue;
+                return LeeSinMenu.insecMenu["wardDistanceToTarget"].Cast<Slider>().CurrentValue + extraRange;
             }
 
             /// <summary>
@@ -49,6 +39,16 @@ namespace MoonyLeeKicks
 
                 Vector2 wardPlacePos = allyPos + (target.Position.To2D() - allyPos).Normalized() *
                                    (target.Distance(allyPos) + GetSpaceDistToEnemy());
+
+                bool useMovementPrediction =
+                    LeeSinMenu.insecExtensionsMenu["useMovementPrediction"].Cast<CheckBox>().CurrentValue;
+                if (useMovementPrediction)
+                {
+                    var predPos = Prediction.Position.PredictUnitPosition(target, 1000);
+                    if (predPos.Distance(wardPlacePos) < target.Distance(wardPlacePos))
+                        wardPlacePos = allyPos + (target.Position.To2D() - allyPos).Normalized() *
+                                   (target.Distance(allyPos) + GetSpaceDistToEnemy(100));
+                }
 
                 
                 bool attendDash = LeeSinMenu.insecExtensionsMenu["attendDashes"].Cast<CheckBox>().CurrentValue;
@@ -96,6 +96,7 @@ namespace MoonyLeeKicks
         public static class InsecSolution
         {
             public static InsecSolutionType lastType = InsecSolutionType.NoSolutionFound;
+            private static int SolutionFoundTick;
 
             /*Ward + Flash is not a solution only, its dicided into 2 parts*/
             public enum InsecSolutionType
@@ -109,6 +110,7 @@ namespace MoonyLeeKicks
 
             public static void FoundSolution(InsecSolutionType type)
             {
+                SolutionFoundTick = Environment.TickCount;
                 lastType = type;
             }
 
@@ -129,8 +131,11 @@ namespace MoonyLeeKicks
                 if (GotASolution && lastType != InsecSolutionType.WaitForDashCast && SpellManager.R.IsReady() &&
                     SpellManager.R.CanCast(SelectionHandler.GetTarget))
                 {
-                    SpellManager.R.Cast(SelectionHandler.GetTarget);
-                    Core.DelayAction(ResetSolution, 3000);
+                    if (Environment.TickCount - SolutionFoundTick >= 300)
+                    {
+                        SpellManager.R.Cast(SelectionHandler.GetTarget);
+                        Core.DelayAction(ResetSolution, 3000);
+                    }
                 }
             }
         }
@@ -141,7 +146,8 @@ namespace MoonyLeeKicks
         private int minEnergy = 80;
         private int minEnegeryFirstActivation = 50;
         public int LastQ1CastTick, LastQ2Tick;
-        //TODO: pink ward jump for special champs
+
+        private int ExtraNeededRange => LeeSinMenu.insecMenu["extraRangeBuffer"].Cast<Slider>().CurrentValue;
 
         private readonly AIHeroClient me;
         public LeeSinInsec()
@@ -452,7 +458,7 @@ namespace MoonyLeeKicks
             float distQTargetToWardPos = GetLastQBuffEnemyObject() != null && GetLastQBuffEnemyObject().IsValid ?
                 GetLastQBuffEnemyObject().Distance(wardPlacePos) : float.MaxValue;
 
-            bool dontNeedFlash = distQTargetToWardPos <= maxWardJumpDist;
+            bool dontNeedFlash = distQTargetToWardPos + ExtraNeededRange <= maxWardJumpDist;
             bool waitForQFirst = (SpellManager.CanCastQ1 || Environment.TickCount - LastQ1CastTick < 1000) &&
                                     LeeSinMenu.insecExtensionsMenu["waitForQBefore_WardFlashKick"].Cast<CheckBox>().CurrentValue;
             bool onlyUseWithQ = GetLastQBuffEnemyObject() == null &&
@@ -556,11 +562,10 @@ namespace MoonyLeeKicks
 
                 #endregion
 
-                float extraNeededRange = 150;
                 var targetMinion = minList.OrderBy(x => x.Distance(wardPlacePos)).FirstOrDefault();
                 if (targetMinion != null && targetMinion.IsValid)
                 {
-                    if (targetMinion.Distance(wardPlacePos) <= WardManager.WardRange + extraNeededRange && canWardJump)
+                    if (targetMinion.Distance(wardPlacePos) <= WardManager.WardRange + ExtraNeededRange && canWardJump)
                     {
                         if (targetMinion.HasBuff("BlindMonkQOne"))
                             SpellManager.Q2.Cast();
@@ -568,7 +573,7 @@ namespace MoonyLeeKicks
                             SpellManager.Q1.Cast(targetMinion.Position);
                     }
 
-                    if (targetMinion.Distance(wardPlacePos) <= SpellManager.Flash.Range + extraNeededRange && canFlash)
+                    if (targetMinion.Distance(wardPlacePos) <= SpellManager.Flash.Range + ExtraNeededRange && canFlash)
                     {
                         if (targetMinion.HasBuff("BlindMonkQOne"))
                             SpellManager.Q2.Cast();
@@ -579,7 +584,7 @@ namespace MoonyLeeKicks
                     if (targetMinion.Distance(wardPlacePos) > SpellManager.Flash.Range &&
                              targetMinion.Distance(wardPlacePos) > WardManager.WardRange && canWardJump && canFlash &&
                              targetMinion.Distance(wardPlacePos) <= 
-                                SpellManager.Flash.Range + WardManager.WardRange + extraNeededRange)
+                                SpellManager.Flash.Range + WardManager.WardRange + ExtraNeededRange)
                     {
                         if (targetMinion.HasBuff("BlindMonkQOne"))
                             SpellManager.Q2.Cast();

@@ -136,13 +136,17 @@ namespace MoonyLeeKicks.Extras
             }
             else errorString = string.Empty;
 
-            CheckWardJump();
+            if (EntityManager.Heroes.Enemies.Any(x => x.IsValid && !x.IsDead && x.Distance(target) <= 700))
+            {
+                CheckQCast();
+                CheckWardJump();
+            }
 
             if (foundSolution)
             {
-                if (target.Distance(me) <= SpellManager.R.Range)
+                if (target.Distance(me) <= SpellManager.R.Range && SpellManager.R.IsReady() && SpellManager.R.CanCast(target))
                     SpellManager.R.Cast(target);
-                Core.DelayAction(() => { if (foundSolution) foundSolution = false; }, 4000);
+                Core.DelayAction(() => foundSolution = false, 3000);
             }
         }
 
@@ -152,6 +156,38 @@ namespace MoonyLeeKicks.Extras
             float y = origin.Y + (float)(radius * Math.Sin(angleInDegrees * Math.PI / 180));
 
             return new Vector2(x, y);
+        }
+
+        private int ExtraNeededRange => LeeSinMenu.insecMenu["extraRangeBuffer"].Cast<Slider>().CurrentValue;
+
+        private void CheckQCast()
+        {
+            var minList = new List<Obj_AI_Minion>();
+            foreach (
+                var minion in
+                    EntityManager.MinionsAndMonsters.Combined.Where(
+                        x => !x.IsAlly && SpellManager.Q1.GetPrediction(x).CollisionObjects.Length == 0))
+            {
+                var qflyTime = me.Distance(minion) / SpellManager.Q1.Speed * 1000 + SpellManager.Q1.CastDelay * 2 +
+                                 100;
+                var alive = Prediction.Health.GetPrediction(minion, (int)Math.Ceiling(qflyTime)) >
+                            me.GetSpellDamage(minion, SpellSlot.Q);
+                if (alive && minion.Distance(me) <= SpellManager.Q1.Range)
+                    minList.Add(minion);
+            }
+
+            var targetMinion = minList.OrderBy(x => x.Distance(SelectionHandler.GetTarget)).FirstOrDefault();
+            if (targetMinion != null && targetMinion.IsValid)
+            {
+                if (targetMinion.Distance(SelectionHandler.GetTarget) <= WardManager.WardRange + 
+                    ExtraNeededRange && WardManager.CanWardJump)
+                {
+                    if (targetMinion.HasBuff("BlindMonkQOne"))
+                        SpellManager.Q2.Cast();
+                    else
+                        SpellManager.Q1.Cast(targetMinion.Position);
+                }
+            }
         }
 
         /// <returns></returns>
@@ -177,7 +213,8 @@ namespace MoonyLeeKicks.Extras
                 }
             }
 
-            if (LeeSinMenu.bubbaKushMenu["useMovementPredictionBubba1"].Cast<CheckBox>().CurrentValue && WardManager.CanWardJump)
+            if (LeeSinMenu.bubbaKushMenu["useMovementPredictionBubba1"].Cast<CheckBox>().CurrentValue 
+                && WardManager.CanWardJump)
             {
                 float predictionDist = me.Distance(target) >= WardManager.WardRange
                     ? WardManager.WardRange

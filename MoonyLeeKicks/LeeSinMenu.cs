@@ -16,9 +16,8 @@ namespace MoonyLeeKicks
         }
 
         public static Menu config,
-            comboMenu, harassMenu, waveClearMenu, jungleClearMenu, miscMenu,
-            insecMenu, insecExtensionsMenu, multiRMenu, starComboMenu, bubbaKushMenu, smiteMenu,
-            DashAnalysisMenu;
+            comboMenu, harassMenu, clearMenu, insecMenu, insecExtensionsMenu, 
+            multiRMenu, starComboMenu, bubbaKushMenu, smiteMenu, DashAnalysisMenu;
 
         private static Menu helpMenu;
         public static void Init()
@@ -47,37 +46,40 @@ namespace MoonyLeeKicks
             comboMenu.AddStringList("currentComboMethod", "Current Combo Style", new [] {"Gank", "Fight"}, 0);
             comboMenu.Add("comboSytleSwitch",
                 new KeyBind("Switch Combo Style (Toggle)", false, KeyBind.BindTypes.PressToggle));
+            comboMenu.AddSeparator();
+
+            comboMenu.AddGroupLabel("Misc");
+            comboMenu.Add("useWardJump", new CheckBox("Wardjump In Flee Mode"));
+            comboMenu.Add("useWardJumpMaxRange", new CheckBox("Use For Max Range"));
+            comboMenu.Add("useRKs_General", new CheckBox("Killsteal R If Possible in general", false));
 
             harassMenu = config.AddSubMenu("Harass", "HarassMenu");
             harassMenu.Add("useQ", new CheckBox("Use Q1 Harass"));
             harassMenu.Add("useE", new CheckBox("Use E Harass"));
 
 
-            waveClearMenu = config.AddSubMenu("WaveClear", "WaveClearMenu");
-            waveClearMenu.Add("useQ", new CheckBox("Use Q WaveClear"));
-            waveClearMenu.Add("useW", new CheckBox("Use W WaveClear"));
-            waveClearMenu.Add("useE", new CheckBox("Use E WaveClear"));
-            waveClearMenu.Add("useItems", new CheckBox("Use Tiamat/Hydra WaveClear"));
+            clearMenu = config.AddSubMenu("Clears", "WaveClearMenu");
+            clearMenu.AddGroupLabel("WaveClear");
+            clearMenu.Add("useQW", new CheckBox("Use Q WaveClear"));
+            clearMenu.Add("useWW", new CheckBox("Use W WaveClear"));
+            clearMenu.Add("useEW", new CheckBox("Use E WaveClear"));
+            clearMenu.Add("useItemsW", new CheckBox("Use Tiamat/Hydra WaveClear"));
+            clearMenu.AddSeparator();
 
-            jungleClearMenu = config.AddSubMenu("JungleClear", "JungleClearMenu");
-            jungleClearMenu.Add("useQ", new CheckBox("Use Q JungleClear"));
-            jungleClearMenu.Add("useW", new CheckBox("Use W JungleClear"));
-            jungleClearMenu.Add("useE", new CheckBox("Use E JungleClear"));
-            jungleClearMenu.Add("useItems", new CheckBox("Use Tiamat/Hydra JungleClear"));
-
-            miscMenu = config.AddSubMenu("Misc", "MiscMenu");
-            miscMenu.Add("useWardJump", new CheckBox("Wardjump In Flee Mode"));
-            miscMenu.Add("useWardJumpMaxRange", new CheckBox("Use For Max Range"));
-            miscMenu.Add("useRKs_General", new CheckBox("Killsteal R If Possible", false));
-
-
-
+            clearMenu.AddGroupLabel("JungleClear");
+            clearMenu.Add("useQJ", new CheckBox("Use Q JungleClear"));
+            clearMenu.Add("useWJ", new CheckBox("Use W JungleClear"));
+            clearMenu.Add("useEJ", new CheckBox("Use E JungleClear"));
+            clearMenu.Add("useItemsJ", new CheckBox("Use Tiamat/Hydra JungleClear"));
 
 
             insecMenu = config.AddSubMenu("Insec", "LeeSinInsec");
             insecMenu.Add("insecFrequency", new Slider("Update delay in ms", 0, 0, 500));
             insecMenu.AddLabel("Inscrease To Get More Fps");
             insecMenu.Add("wardDistanceToTarget", new Slider("Ward Distance To Enemy", 230, 200, 300));
+            insecMenu.AddSeparator();
+            insecMenu.Add("extraRangeBuffer", new Slider("Extra Range Buffer", 150, 0, 300));
+            insecMenu.AddLabel("Prevents to jump at max range..");
             insecMenu.AddSeparator();
 
             insecMenu.Add("_insecKey", new KeyBind("Lee Sin Insec Key", false, KeyBind.BindTypes.HoldActive));
@@ -113,7 +115,7 @@ namespace MoonyLeeKicks
             insecExtensionsMenu.AddSeparator();
 
 
-            insecExtensionsMenu.Add("waitForQBefore_WardFlashKick", new CheckBox("Do Not Execute Instant Insec", false));
+            insecExtensionsMenu.Add("waitForQBefore_WardFlashKick", new CheckBox("Do Not Execute Instant Insec"));
             insecExtensionsMenu.AddLabel("Wait For Using Q Before Instantly Do Ward->Flash->Kick");
             insecExtensionsMenu.AddLabel("(Doesn't Matter If The Q Hits)");
             insecExtensionsMenu.AddSeparator();

@@ -63,7 +63,7 @@ namespace MoonyLeeKicks
                 LeeSinMenu.comboMenu["comboSytleSwitch"].Cast<KeyBind>().CurrentValue = false;
             }
 
-            if (SpellManager.R.IsReady() && LeeSinMenu.miscMenu["useRKs_General"].Cast<CheckBox>().CurrentValue)
+            if (SpellManager.R.IsReady() && LeeSinMenu.comboMenu["useRKs_General"].Cast<CheckBox>().CurrentValue)
                 foreach (AIHeroClient killableEnemy in EntityManager.Heroes.Enemies.Where(x => x.IsValid && 
                     me.GetSpellDamage(x, SpellSlot.R) > x.Health && x.Distance(me) <= SpellManager.R.Range))
                 {
@@ -206,9 +206,9 @@ namespace MoonyLeeKicks
 
             if (targetMinion != null && targetMinion.IsValid)
             {
-                bool useQ = LeeSinMenu.jungleClearMenu["useQ"].Cast<CheckBox>().CurrentValue;
-                bool useW = LeeSinMenu.jungleClearMenu["useW"].Cast<CheckBox>().CurrentValue;
-                bool useE = LeeSinMenu.jungleClearMenu["useE"].Cast<CheckBox>().CurrentValue;
+                bool useQ = LeeSinMenu.clearMenu["useQJ"].Cast<CheckBox>().CurrentValue;
+                bool useW = LeeSinMenu.clearMenu["useWJ"].Cast<CheckBox>().CurrentValue;
+                bool useE = LeeSinMenu.clearMenu["useEJ"].Cast<CheckBox>().CurrentValue;
 
                 int maxPassiveStacks = me.Level < 6 ? 0 : 1;
                 maxPassiveStacks = me.Level > 15 ? 2 : maxPassiveStacks;
@@ -235,16 +235,16 @@ namespace MoonyLeeKicks
                 if (useE && SpellManager.CanCastE2 && PassiveStacks <= maxPassiveStacks)
                     SpellManager.E2.Cast(me.Position);
 
-                UseItems(LeeSinMenu.jungleClearMenu["useItems"].Cast<CheckBox>().CurrentValue, targetMinion);
+                UseItems(LeeSinMenu.clearMenu["useItemsJ"].Cast<CheckBox>().CurrentValue, targetMinion);
             }
         }
 
         private static int lastWCastWaveClear;
         private static void WaveClear()
         {
-            bool useQ = LeeSinMenu.waveClearMenu["useQ"].Cast<CheckBox>().CurrentValue;
-            bool useW = LeeSinMenu.waveClearMenu["useW"].Cast<CheckBox>().CurrentValue;
-            bool useE = LeeSinMenu.waveClearMenu["useE"].Cast<CheckBox>().CurrentValue;
+            bool useQ = LeeSinMenu.clearMenu["useQW"].Cast<CheckBox>().CurrentValue;
+            bool useW = LeeSinMenu.clearMenu["useWW"].Cast<CheckBox>().CurrentValue;
+            bool useE = LeeSinMenu.clearMenu["useEW"].Cast<CheckBox>().CurrentValue;
 
             var targetMinion =
                 EntityManager.MinionsAndMonsters.EnemyMinions.Where(x => x.Distance(me) <= 500 && x.IsValid).OrderByDescending(x => x.Health).FirstOrDefault();
@@ -279,7 +279,7 @@ namespace MoonyLeeKicks
                     if (useE && SpellManager.CanCastE2 && PassiveStacks <= maxPassiveStacks)
                         SpellManager.E2.Cast(me.Position);
 
-                    UseItems(LeeSinMenu.waveClearMenu["useItems"].Cast<CheckBox>().CurrentValue, targetMinion);
+                    UseItems(LeeSinMenu.clearMenu["useItemsW"].Cast<CheckBox>().CurrentValue, targetMinion);
                 }
                 catch { }
             }
@@ -289,8 +289,8 @@ namespace MoonyLeeKicks
         {
             bool canWard = WardManager.CanCastWard;
             bool enoughMana = me.Mana >= me.Spellbook.GetSpell(SpellSlot.W).SData.Mana;
-            bool doWardJump = LeeSinMenu.miscMenu["useWardJump"].Cast<CheckBox>().CurrentValue;
-            bool maxRange = LeeSinMenu.miscMenu["useWardJumpMaxRange"].Cast<CheckBox>().CurrentValue;
+            bool doWardJump = LeeSinMenu.comboMenu["useWardJump"].Cast<CheckBox>().CurrentValue;
+            bool maxRange = LeeSinMenu.comboMenu["useWardJumpMaxRange"].Cast<CheckBox>().CurrentValue;
 
             Vector2 maxRangeJumpPos = me.Position.To2D() +
                             (Game.CursorPos.To2D() - me.Position.To2D()).Normalized() * WardManager.WardRange;
