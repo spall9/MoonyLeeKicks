@@ -13,7 +13,8 @@ namespace MoonyLeeKicks.Insec
         enum Elo
         {
             Low,
-            AveragePlus
+            AveragePlus,
+            High
         }
 
         enum DashForecast
@@ -41,7 +42,8 @@ namespace MoonyLeeKicks.Insec
             =>
                 LeeSinMenu.insecExtensionsMenu["dashInfo__Elo"].Cast<ComboBox>().SelectedIndex == 0
                     ? Elo.Low
-                    : Elo.AveragePlus;
+                    : (LeeSinMenu.insecExtensionsMenu["dashInfo__Elo"].Cast<ComboBox>().SelectedIndex == 1 ?
+                            Elo.AveragePlus : Elo.High);
 
         static Vector2 CalculateWardPositionAfterDash_Forecasted(float normalDistance)
         {
@@ -190,7 +192,7 @@ namespace MoonyLeeKicks.Insec
             if (dashAnalysis == null)
                 return Vector2.Zero;
 
-            if (useAnalysis && dashAnalysis.DashProbability < minProb)
+            if ((useAnalysis && dashAnalysis.DashProbability < minProb) || (useAnalysis && targetElo == Elo.High))
                 return Vector2.Zero;
 
             bool lowElo = targetElo == Elo.Low && (!useAnalysis || dashAnalysis.NotEnoughData);

@@ -103,7 +103,7 @@ namespace MoonyLeeKicks
             insecExtensionsMenu.Add("dashForcecastMethod", new ComboBox("Dash Prediction Method", 1, 
                 "Prospective Forecast", "Wait For Dash Cast"));
             insecExtensionsMenu.AddSeparator();
-            insecExtensionsMenu.Add("dashInfo__Elo", new ComboBox("Target Elo", 1, "Bronze+", "Gold+"));
+            insecExtensionsMenu.Add("dashInfo__Elo", new ComboBox("Target Elo", 2, "Bronze+", "Gold+", "Plat+"));
             insecExtensionsMenu.AddSeparator();
             insecExtensionsMenu.Add("useDashAnalysis", new CheckBox("Use Dash Analysis Data To Predict Dashes"));
             insecExtensionsMenu.AddLabel("TURN OFF IN HIGH ELO");
