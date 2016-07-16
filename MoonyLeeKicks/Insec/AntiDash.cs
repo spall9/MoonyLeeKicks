@@ -195,7 +195,7 @@ namespace MoonyLeeKicks.Insec
             if ((useAnalysis && dashAnalysis.DashProbability < minProb) || (useAnalysis && targetElo == Elo.High))
                 return Vector2.Zero;
 
-            bool lowElo = targetElo == Elo.Low && (!useAnalysis || dashAnalysis.NotEnoughData);
+            bool lowElo = targetElo == Elo.Low && !useAnalysis;
             if (!enabled || lowElo)
                 return Vector2.Zero;
 
