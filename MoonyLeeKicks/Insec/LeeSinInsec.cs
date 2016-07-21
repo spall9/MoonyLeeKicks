@@ -268,21 +268,21 @@ namespace MoonyLeeKicks
 
         private void DrawingOnOnDraw(EventArgs args)
         {
-            if (ally != null && ally.IsValid)
-                new Circle(new ColorBGRA(new Vector4(255, 255, 255, 1)), 100, 2).Draw(ally.Position);
+            if (SelectionHandler.LastAllyPosValid)
+                new Circle(new ColorBGRA(new Vector4(255, 255, 255, 1)), 100, 2).Draw(SelectionHandler.GetAllyPos.To3D());
 
-            if (ally == null || TargetSelector.SelectedTarget == null || !ally.IsValid || !TargetSelector.SelectedTarget.IsValid)
+            if (!SelectionHandler.LastTargetValid || !SelectionHandler.LastAllyPosValid)
             {
                 if (LeeSinMenu.insecMenu["_insecKey"].Cast<KeyBind>().CurrentValue)
                     DrawFailInfo();
                 return;
             }
 
-            bool couldInsec = TargetSelector.SelectedTarget.IsValid && ally.IsValid && HasResourcesToInsec();
+            bool couldInsec = SelectionHandler.LastTargetValid && SelectionHandler.LastAllyPosValid && HasResourcesToInsec();
             if (couldInsec)
             {
-                var startpos = TargetSelector.SelectedTarget.Position.To2D();
-                var endpos = ally.Position.To2D();
+                var startpos = SelectionHandler.GetTarget.Position.To2D();
+                var endpos = SelectionHandler.GetAllyPos;
 
                 Vector2[] arrows = {
                     endpos + (startpos - endpos).Normalized().Rotated(45 * (float)Math.PI / 180) *
