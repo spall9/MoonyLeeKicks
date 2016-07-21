@@ -17,13 +17,12 @@ namespace MoonyLeeKicks
 
         public static Menu config,
             comboMenu, harassMenu, clearMenu, insecMenu, insecExtensionsMenu, 
-            multiRMenu, starComboMenu, bubbaKushMenu, smiteMenu, DashAnalysisMenu;
+            multiRMenu, starComboMenu, bubbaKushMenu, smiteMenu;
 
         private static Menu helpMenu;
         public static void Init()
         {
             config = MainMenu.AddMenu("MoonyLeeSin", "__MoonyLeeSin");
-            config.AddGroupLabel("Most intelligent Lee Script");
             config.AddGroupLabel("by DanThePman");
 
             comboMenu = config.AddSubMenu("Combo", "ComboMenu");
@@ -78,9 +77,6 @@ namespace MoonyLeeKicks
             insecMenu.AddLabel("Inscrease To Get More Fps");
             insecMenu.Add("wardDistanceToTarget", new Slider("Ward Distance To Enemy", 230, 200, 300));
             insecMenu.AddSeparator();
-            insecMenu.Add("extraRangeBuffer", new Slider("Extra Range Buffer", 150, 0, 300));
-            insecMenu.AddLabel("Prevents to jump at max range..");
-            insecMenu.AddSeparator();
 
             insecMenu.Add("_insecKey", new KeyBind("Lee Sin Insec Key", false, KeyBind.BindTypes.HoldActive));
             insecMenu.Add("moonSec", new CheckBox("Enable MoonSec", false));
@@ -99,21 +95,6 @@ namespace MoonyLeeKicks
             insecExtensionsMenu.AddLabel("Click On Ground");
             insecExtensionsMenu.AddSeparator();
 
-            insecExtensionsMenu.AddGroupLabel("Anti Dash");
-            insecExtensionsMenu.Add("attendDashes", new CheckBox("Enabled"));
-            insecExtensionsMenu.AddLabel("Only Calculates Extra Range If The Target Has Q Buff. Ignores If Jumps Over Minions");
-            insecExtensionsMenu.Add("dashForcecastMethod", new ComboBox("Dash Prediction Method", 1, 
-                "Prospective Forecast", "Wait For Dash Cast"));
-            insecExtensionsMenu.AddSeparator();
-            insecExtensionsMenu.Add("dashInfo__Elo", new ComboBox("Target Elo", 2, "Bronze+", "Gold+", "Plat+"));
-            insecExtensionsMenu.AddSeparator();
-            insecExtensionsMenu.Add("useDashAnalysis", new CheckBox("Use Dash Analysis Data To Predict Dashes"));
-            insecExtensionsMenu.AddLabel("TURN OFF IN HIGH ELO");
-            insecExtensionsMenu.AddSeparator();
-            insecExtensionsMenu.Add("minPobabilityToDash", new Slider("Minimum Enemy Dash Probability to Assume A Dash", 70));
-            insecExtensionsMenu.AddGroupLabel("________________________________________________");
-            insecExtensionsMenu.AddSeparator();
-
 
             insecExtensionsMenu.Add("waitForQBefore_WardFlashKick", new CheckBox("Do Not Execute Instant Insec"));
             insecExtensionsMenu.AddLabel("Wait For Using Q Before Instantly Do Ward->Flash->Kick");
@@ -128,11 +109,6 @@ namespace MoonyLeeKicks
 
             insecExtensionsMenu.Add("useMovementPrediction", new CheckBox("Use Movement Prediction"));
             insecExtensionsMenu.AddLabel("If The Target Is Running Away, The Ward Distance To It Increases");
-            insecExtensionsMenu.AddSeparator();
-
-
-
-            DashAnalysisMenu = config.AddSubMenu("DashAnalysis", "DashAnalysisMenu");
 
 
 

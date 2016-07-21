@@ -7,7 +7,6 @@ using EloBuddy.SDK.Enumerations;
 using EloBuddy.SDK.Events;
 using EloBuddy.SDK.Menu.Values;
 using MoonyLeeKicks.Extras;
-using MoonyLeeKicks.Insec;
 using SharpDX;
 
 namespace MoonyLeeKicks
@@ -25,8 +24,6 @@ namespace MoonyLeeKicks
             }
         }
 
-        private static LeeSinInsec InsecInstance;
-
         static void Main(string[] args)
         {
             Loading.OnLoadingComplete += eventArgs =>
@@ -39,23 +36,73 @@ namespace MoonyLeeKicks
                     SelectionHandler.InitListening();
                     WardManager.Init();
                     SpellManager.Init();
-                    ChampionDashes.Init();
-                    DashAnalysis.Init();
 
                     new MultiKick();
-                    InsecInstance = new LeeSinInsec();
+                    new LeeSinInsec();
                     new StarCombo();
                     new BubbaKush();
                     new Smite();
 
-                    Obj_AI_Base.OnProcessSpellCast += AntiDash.ObjAiBaseOnOnProcessSpellCast;
                     Game.OnUpdate += LeeSinOnUpdate;
+                    Obj_AI_Base.OnPlayAnimation += ObjAiBaseOnOnPlayAnimation;
                 }
             };
         }
 
+        private static void ObjAiBaseOnOnPlayAnimation(Obj_AI_Base sender, GameObjectPlayAnimationEventArgs args)
+        {
+            if (!sender.IsMe)
+                return;
+
+            if (args.Animation == "Spell1a")
+                LastQ1CastTick = Environment.TickCount;
+
+            if (args.Animation == "Spell1b")
+            {
+                LastQ2Tick = Environment.TickCount;
+                //Last Q Enemy still valid if it was before
+                if (GetLastQBuffEnemyHero() != null)
+                {
+                    QbuffEndTime_hero += 3; //sec
+                    extentedQ_hero = true;
+                }
+            }
+        }
+
+        private static AIHeroClient lastEnemyWithQBuff_hero;
+        private static int LastQ1CastTick;
+        static int LastQ2Tick;
+        private static float QbuffEndTime_hero;
+        private static bool extentedQ_hero;
+        static AIHeroClient GetLastQBuffEnemyHero()
+        {
+            var currentEnemyWithQBuff = ObjectManager.Get<Obj_AI_Base>()
+                .FirstOrDefault(x => x.IsEnemy && x.IsValid && x.HasBuff("BlindMonkQOne")) as AIHeroClient;
+            if (currentEnemyWithQBuff != null)
+            {
+                lastEnemyWithQBuff_hero = currentEnemyWithQBuff;
+                QbuffEndTime_hero = lastEnemyWithQBuff_hero.GetBuff("BlindMonkQOne").EndTime;
+            }
+
+            if (extentedQ_hero && lastEnemyWithQBuff_hero != null &&
+                lastEnemyWithQBuff_hero.Distance(ObjectManager.Player) <= 80)
+            {
+                QbuffEndTime_hero = 0;
+            }
+
+            if (lastEnemyWithQBuff_hero != null && Game.Time >= QbuffEndTime_hero)
+            {
+                lastEnemyWithQBuff_hero = null;
+                extentedQ_hero = false;
+            }
+
+            return lastEnemyWithQBuff_hero;
+        }
+
         private static void LeeSinOnUpdate(EventArgs args)
         {
+            GetLastQBuffEnemyHero(); //update
+
             if (LeeSinMenu.comboMenu["comboSytleSwitch"].Cast<KeyBind>().CurrentValue)
             {
                 int comboMethod = LeeSinMenu.comboMenu["currentComboMethod"].Cast<Slider>().CurrentValue;
@@ -97,13 +144,18 @@ namespace MoonyLeeKicks
         private static void Harass()
         {
             var target = TargetSelector.GetTarget(1000, DamageType.Magical) ?? TargetSelector.GetTarget(1000, DamageType.Physical);
-            var qPred = SpellManager.Q1.GetPrediction(target);
+            if (target != null && target.IsValid)
+            {
+                var qPred = SpellManager.Q1.GetPrediction(target);
 
-            if (SpellManager.CanCastQ1 && me.Mana >= 50 && qPred.HitChance >= HitChance.High)
-                SpellManager.Q1.Cast(qPred.CastPosition);
+                if (SpellManager.CanCastQ1 && me.Mana >= 50 && qPred.HitChance >= HitChance.High && 
+                    LeeSinMenu.harassMenu["useQ"].Cast<CheckBox>().CurrentValue)
+                    SpellManager.Q1.Cast(qPred.CastPosition);
 
-            if (SpellManager.CanCastE1 && me.Mana >= 50 && target.Distance(me) <= SpellManager.E1.Range)
-                SpellManager.E1.Cast(me.Position);
+                if (SpellManager.CanCastE1 && me.Mana >= 50 && target.Distance(me) <= SpellManager.E1.Range &&
+                    LeeSinMenu.harassMenu["useE"].Cast<CheckBox>().CurrentValue)
+                    SpellManager.E1.Cast(me.Position);
+            }
         }
 
         private static int lastWFightCombo, FightComboSpellCastTick;
@@ -174,8 +226,7 @@ namespace MoonyLeeKicks
                 return;
             }
 
-            if (useR && SpellManager.CanCastQ2 &&
-                InsecInstance.GetLastQBuffEnemyHero().Equals(target) &&
+            if (useR && SpellManager.CanCastQ2 && GetLastQBuffEnemyHero().Equals(target) &&
                 SpellManager.R.IsReady() && target.Distance(me) <= SpellManager.R.Range
                 && PassiveStacks <= maxPassiveStacks && cannotAA)
                 SpellManager.R.Cast(target);
@@ -339,10 +390,10 @@ namespace MoonyLeeKicks
             if (SpellManager.CanCastE2 && Orbwalker.CanMove)
                 SpellManager.E2.Cast(me.Position);
 
-            bool canQFly = SpellManager.CanCastQ1 && target.Distance(me) <= 1300 && 
+            bool canQFly = SpellManager.CanCastQ1 && target.Distance(me) <= 1300 &&
                 LeeSinMenu.comboMenu["noWAtQ1Fly"].Cast<CheckBox>().CurrentValue;
-            bool q2 = 
-                (Environment.TickCount - InsecInstance.LastQ2Tick <= 2000 || InsecInstance.GetLastQBuffEnemyHero() != null) && 
+            bool q2 =
+                (Environment.TickCount - LastQ2Tick <= 2000 || GetLastQBuffEnemyHero() != null) &&
                 LeeSinMenu.comboMenu["noWAtQ2"].Cast<CheckBox>().CurrentValue;
             if (target.Distance(me) > me.GetAutoAttackRange() && useW && !canQFly && !q2)
             {
