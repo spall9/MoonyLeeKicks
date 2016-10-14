@@ -1,0 +1,10 @@
+C:\Users\Daniel\Documents\Visual Studio 2015\Projects\MoonyLeeKicks\MoonyLeeKicks\bin\Release\MoonyLeeKicks.exe.config
+C:\Users\Daniel\Documents\Visual Studio 2015\Projects\MoonyLeeKicks\MoonyLeeKicks\bin\Release\MoonyLeeKicks.exe
+C:\Users\Daniel\Documents\Visual Studio 2015\Projects\MoonyLeeKicks\MoonyLeeKicks\bin\Release\MoonyLeeKicks.pdb
+C:\Users\Daniel\Documents\Visual Studio 2015\Projects\MoonyLeeKicks\MoonyLeeKicks\bin\Release\EloBuddy.dll
+C:\Users\Daniel\Documents\Visual Studio 2015\Projects\MoonyLeeKicks\MoonyLeeKicks\bin\Release\EloBuddy.SDK.dll
+C:\Users\Daniel\Documents\Visual Studio 2015\Projects\MoonyLeeKicks\MoonyLeeKicks\bin\Release\SharpDX.Direct3D9.dll
+C:\Users\Daniel\Documents\Visual Studio 2015\Projects\MoonyLeeKicks\MoonyLeeKicks\bin\Release\SharpDX.dll
+C:\Users\Daniel\Documents\Visual Studio 2015\Projects\MoonyLeeKicks\MoonyLeeKicks\bin\Release\Newtonsoft.Json.dll
+C:\Users\Daniel\Documents\Visual Studio 2015\Projects\MoonyLeeKicks\MoonyLeeKicks\obj\Release\MoonyLeeKicks.exe
+C:\Users\Daniel\Documents\Visual Studio 2015\Projects\MoonyLeeKicks\MoonyLeeKicks\obj\Release\MoonyLeeKicks.pdb
