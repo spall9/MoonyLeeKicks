@@ -10,7 +10,7 @@ using EloBuddy.SDK.Rendering;
 using SharpDX;
 using Color = System.Drawing.Color;
 
-namespace MoonyLeeKicks
+namespace MoonyLeeKicks.Insec
 {
     internal class LeeSinInsec
     {
@@ -171,6 +171,7 @@ namespace MoonyLeeKicks
 
             return lastEnemyWithQBuff_hero;
         }
+
         Obj_AI_Base GetLastQBuffEnemyObject()
         {
             var currentEnemyWithQBuff = ObjectManager.Get<Obj_AI_Base>()
@@ -197,8 +198,9 @@ namespace MoonyLeeKicks
         }
 
         private bool HasResourcesToInsec()
-        {
-            bool canJump = SpellManager.CanCastW1 || SpellManager.FlashReady || (GetAllyAsWard() != null && GetAllyAsWard().IsValid);
+        { 
+            var allyAsWard = GetAllyAsWard();
+            bool canJump = SpellManager.CanCastW1 || SpellManager.FlashReady || (allyAsWard != null && allyAsWard.IsValid);
             bool canInsec = canJump && SpellManager.R.IsReady();
             return canInsec && SelectionHandler.LastAllyPosValid && SelectionHandler.LastTargetValid;
         }
@@ -206,6 +208,8 @@ namespace MoonyLeeKicks
         Obj_AI_Base GetAllyAsWard()
         {
             List<Obj_AI_Base> allyJumps = new List<Obj_AI_Base>();
+            if (!SelectionHandler.LastTargetValid || !SelectionHandler.LastAllyPosValid)
+                return null;
             
             #region setVars
             var target = SelectionHandler.GetTarget;
@@ -222,6 +226,7 @@ namespace MoonyLeeKicks
                     allyJumps.Add(allyobj);
                 }
             }
+
             Obj_AI_Base obj = allyJumps.Any() ? allyJumps.OrderBy(x => x.Distance(wardPlacePos)).First() : null;
             return obj;
         }
@@ -300,7 +305,7 @@ namespace MoonyLeeKicks
                 DrawFailInfo();
 
             bool dashDebug = LeeSinMenu.insecMenu["dashDebug"].Cast<KeyBind>().CurrentValue;
-            if (dashDebug)
+            if (dashDebug && SelectionHandler.LastAllyPosValid)
             {
                 new Circle(new ColorBGRA(new Vector4(0, 0, 255, 1)), 70, 4).Draw(
                     WardJumpPosition.GetWardJumpPosition(SelectionHandler.GetAllyPos).To3D());
@@ -352,6 +357,7 @@ namespace MoonyLeeKicks
 
             if (me.Distance(wardPlacePos) <= maxDist && canWardJump)
             {
+                //Chat.Print("wardKick");
                 if (WardManager.CanCastWard)
                     WardManager.CastWardTo(wardPlacePos.To3D());
                 else
@@ -371,6 +377,7 @@ namespace MoonyLeeKicks
 
             if (me.Distance(wardPlacePos) <= SpellManager.Flash.Range && canFlash && cantWardKick)
             {
+                //Chat.Print("flashKick");
                 SpellManager.Flash.Cast(wardPlacePos.To3D());
                 Core.RepeatAction(() => SpellManager.R.Cast(target), 150, 1500);
                 ally = null;
@@ -406,6 +413,7 @@ namespace MoonyLeeKicks
             if (inRange && canWardJump && canFlash && !dontNeedFlash &&
                 !waitForQFirst && !onlyUseWithQ)
             {
+                //Chat.Print("wardFLashKick");
                 if (WardManager.CanCastWard)
                     WardManager.CastWardTo(wardPlacePos.To3D());
                 else /*flash -> ally w to reach wardPos*/

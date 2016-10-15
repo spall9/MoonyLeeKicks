@@ -6,6 +6,7 @@ using EloBuddy;
 using EloBuddy.SDK;
 using EloBuddy.SDK.Menu.Values;
 using EloBuddy.SDK.Rendering;
+using MoonyLeeKicks.Insec;
 using SharpDX;
 
 namespace MoonyLeeKicks.Extras

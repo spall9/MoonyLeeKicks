@@ -4,7 +4,7 @@ using EloBuddy.SDK;
 using EloBuddy.SDK.Menu.Values;
 using SharpDX;
 
-namespace MoonyLeeKicks
+namespace MoonyLeeKicks.Insec
 {
     static class SelectionHandler
     {
