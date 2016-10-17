@@ -171,6 +171,9 @@ namespace MoonyLeeKicks
             bool useR = LeeSinMenu.comboMenu["useRFight"].Cast<CheckBox>().CurrentValue;
 
             var target = TargetSelector.GetTarget(1000, DamageType.Magical) ?? TargetSelector.GetTarget(1000, DamageType.Physical);
+            if (target == null || !target.IsValid)
+                return;
+
             var qPred = SpellManager.Q1.GetPrediction(target);
 
             bool cannotAA = !Orbwalker.CanAutoAttack || Orbwalker.CanBeAborted || target.Distance(me) > me.GetAutoAttackRange();
@@ -391,7 +394,7 @@ namespace MoonyLeeKicks
             if (SpellManager.CanCastE2 && Orbwalker.CanMove)
                 SpellManager.E2.Cast(me.Position);
 
-            bool canQFly = SpellManager.CanCastQ1 && target.Distance(me) <= 1300 &&
+            bool canQFly = ((SpellManager.CanCastQ1 && target.Distance(me) <= 1300) || Environment.TickCount-LastQ1CastTick <= 3000) &&
                 LeeSinMenu.comboMenu["noWAtQ1Fly"].Cast<CheckBox>().CurrentValue;
             bool q2 =
                 (Environment.TickCount - LastQ2Tick <= 2000 || GetLastQBuffEnemyHero() != null) &&

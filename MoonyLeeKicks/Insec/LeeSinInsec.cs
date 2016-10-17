@@ -83,12 +83,14 @@ namespace MoonyLeeKicks.Insec
             }
         }
 
-        private static Obj_AI_Base ally;
         /// <summary>
         /// 2 activations
         /// </summary>
         private static int minEnergy = 80;
         private static int minEnegeryFirstActivation = 50;
+        private static int lastInsecCheckTick, LastQ1CastTick;
+        private bool moonSecActive;
+        private bool _decidedWardKick;
         //TODO: pink ward jump for special champs
 
         private readonly AIHeroClient me = ObjectManager.Player;
@@ -102,16 +104,17 @@ namespace MoonyLeeKicks.Insec
             Drawing.OnDraw += DrawingOnOnDraw;
         }
 
-        private int lastInsecCheckTick;
         private void GameOnOnUpdate(EventArgs args)
         {
-            bool targetValid = TargetSelector.SelectedTarget != null && TargetSelector.SelectedTarget.IsValid;
-            bool allyValid = ally != null && ally.IsValid;
-
-            if (!allyValid || !targetValid)
+            if (!LeeSinMenu.insecMenu["_insecKey"].Cast<KeyBind>().CurrentValue)
                 return;
 
-            if (!LeeSinMenu.insecMenu["_insecKey"].Cast<KeyBind>().CurrentValue)
+            Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
+
+            bool targetValid = TargetSelector.SelectedTarget != null && TargetSelector.SelectedTarget.IsValid;
+            bool allyValid = SelectionHandler.LastAllyPosValid;
+
+            if (!allyValid || !targetValid)
                 return;
 
             int updateFrequency = LeeSinMenu.insecMenu["insecFrequency"].Cast<Slider>().CurrentValue;
@@ -139,9 +142,10 @@ namespace MoonyLeeKicks.Insec
                     extentedQ_hero = true;
                 }
             }
-        }
 
-        private static int LastQ1CastTick;
+            if (args.Animation == "Spell2a")
+                ;
+        }
 
         private static AIHeroClient lastEnemyWithQBuff_hero;
         static Obj_AI_Base lastEnemyWithQBuff_object;
@@ -200,7 +204,9 @@ namespace MoonyLeeKicks.Insec
         private bool HasResourcesToInsec()
         { 
             var allyAsWard = GetAllyAsWard();
-            bool canJump = SpellManager.CanCastW1 || SpellManager.FlashReady || (allyAsWard != null && allyAsWard.IsValid);
+            bool canJump = (SpellManager.CanCastW1 && (WardManager.CanCastWard || allyAsWard != null)) || 
+                (SpellManager.FlashReady && !LeeSinMenu.insecExtensionsMenu["dontFlash"].Cast<CheckBox>().CurrentValue);
+
             bool canInsec = canJump && SpellManager.R.IsReady();
             return canInsec && SelectionHandler.LastAllyPosValid && SelectionHandler.LastTargetValid;
         }
@@ -221,7 +227,7 @@ namespace MoonyLeeKicks.Insec
             foreach (var allyobj in ObjectManager.Get<Obj_AI_Base>().Where(x =>
                             x.IsValid && x.IsAlly && !x.IsMe && (x is AIHeroClient || x is Obj_AI_Minion)))
             {
-                if (allyobj.Distance(wardPlacePos) <= 80 && allyobj.Distance(ally) > ally.Distance(target))
+                if (allyobj.Distance(wardPlacePos) <= 80)
                 {
                     allyJumps.Add(allyobj);
                 }
@@ -233,21 +239,26 @@ namespace MoonyLeeKicks.Insec
 
         private void AiHeroClientOnOnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
+            if (sender.IsMe && LeeSinMenu.insecMenu["_insecKey"].Cast<KeyBind>().CurrentValue &&
+                args.SData.Name.ToLower().Contains("wone"))
+            {
+                int wspeed = 2000;
+            }
+
             if (!sender.IsMe || args.Slot != SpellSlot.R || !LeeSinMenu.insecMenu["_insecKey"].Cast<KeyBind>().CurrentValue)
                 return;
 
             if (moonSecActive)
             {
                 var target = TargetSelector.SelectedTarget;
-                var wardPlacePos = ally.Position.To2D() + (target.Position.To2D() - ally.Position.To2D()).Normalized() *
-                               (target.Distance(ally) - (float)SpellManager.R.Range / 2);
+                var wardPlacePos = SelectionHandler.GetAllyPos + (target.Position.To2D() - SelectionHandler.GetAllyPos).Normalized() *
+                               (target.Distance(SelectionHandler.GetAllyPos) - (float)SpellManager.R.Range / 2);
                 var flashPos = wardPlacePos.Extend(target, SpellManager.Flash.Range);
 
                 Core.DelayAction(() =>
                 {
                     SpellManager.Flash.Cast(flashPos.To3D());
                     moonSecActive = false;
-                    ally = null;
                 }, 80);
             }
 
@@ -307,7 +318,7 @@ namespace MoonyLeeKicks.Insec
             bool dashDebug = LeeSinMenu.insecMenu["dashDebug"].Cast<KeyBind>().CurrentValue;
             if (dashDebug && SelectionHandler.LastAllyPosValid)
             {
-                new Circle(new ColorBGRA(new Vector4(0, 0, 255, 1)), 70, 4).Draw(
+                new Circle(new ColorBGRA(new Vector4(0, 0, 1, 1)), 70, 4).Draw(
                     WardJumpPosition.GetWardJumpPosition(SelectionHandler.GetAllyPos).To3D());
             }
         }
@@ -320,7 +331,7 @@ namespace MoonyLeeKicks.Insec
 
                 if (TargetSelector.SelectedTarget == null || !TargetSelector.SelectedTarget.IsValid)
                     StatusText.TextValue = "No Insec Target Selected";
-                else if (ally == null || !ally.IsValid)
+                else if (!SelectionHandler.LastAllyPosValid)
                     StatusText.TextValue = "Invalid Insec Ally";
                 else if (!HasResourcesToInsec())
                     StatusText.TextValue = "Not enough Spells for Insec";
@@ -342,28 +353,42 @@ namespace MoonyLeeKicks.Insec
                     (x => x.Distance(Game.CursorPos) <= 200 && !x.IsMe && x.IsValid);
                 if (allyy != null && allyy.IsValid)
                 {
-                    ally = allyy;
                 }
             }
         }
 
+        private bool decidedWardKick
+        {
+            get { return _decidedWardKick; }
+            set
+            {
+                _decidedWardKick = value;
+                if (!value)
+                    LastWardJumpInsecPosition = default(Vector2);
+            }
+        }
+
+        private Vector2 LastWardJumpInsecPosition;
         private bool CanWardKick(Vector2 wardPlacePos, AIHeroClient target)
         {
             var allyJump = GetAllyAsWard();
-            var allyJumpValid = allyJump != null && allyJump.IsValid;
+            var allyJumpValid = allyJump != null;
             var canWardJump = (WardManager.CanCastWard || allyJumpValid) && SpellManager.CanCastW1 &&
                 me.Mana >= minEnegeryFirstActivation;
             float maxDist = WardManager.CanCastWard ? WardManager.WardRange : SpellManager.W1.Range;
 
             if (me.Distance(wardPlacePos) <= maxDist && canWardJump)
             {
+                decidedWardKick = true;
+                LastWardJumpInsecPosition = wardPlacePos;
                 //Chat.Print("wardKick");
                 if (WardManager.CanCastWard)
                     WardManager.CastWardTo(wardPlacePos.To3D());
                 else
                     SpellManager.W1.Cast(allyJump);
                 Core.RepeatAction(() => SpellManager.R.Cast(target), 350, 1500);
-                ally = null;
+
+                Core.DelayAction(() => decidedWardKick = false, 1000);
                 return true;
             }
 
@@ -372,16 +397,21 @@ namespace MoonyLeeKicks.Insec
 
         private bool CanFlashKick(Vector2 wardPlacePos, AIHeroClient target)
         {
+            if (decidedWardKick)
+                return false;
+
             bool cantWardKick = !CanWardKick(wardPlacePos, target);
             var canFlash = SpellManager.FlashReady;
 
             if (me.Distance(wardPlacePos) <= SpellManager.Flash.Range && canFlash && cantWardKick)
             {
                 //Chat.Print("flashKick");
-                SpellManager.Flash.Cast(wardPlacePos.To3D());
-                Core.RepeatAction(() => SpellManager.R.Cast(target), 150, 1500);
-                ally = null;
-                return true;
+                if (!LeeSinMenu.insecExtensionsMenu["dontFlash"].Cast<CheckBox>().CurrentValue)
+                {
+                    SpellManager.Flash.Cast(wardPlacePos.To3D());
+                    Core.RepeatAction(() => SpellManager.R.Cast(target), 150, 1500);
+                    return true;
+                }
             }
 
             return false;
@@ -390,7 +420,7 @@ namespace MoonyLeeKicks.Insec
         private bool CanWardFlashKick(Vector2 wardPlacePos)
         {
             var allyJump = GetAllyAsWard();
-            var allyJumpValid = allyJump != null && allyJump.IsValid;
+            var allyJumpValid = allyJump != null;
             var canFlash = SpellManager.FlashReady;
             var canWardJump = (WardManager.CanCastWard || allyJumpValid) &&
                                 me.Mana >= minEnegeryFirstActivation && SpellManager.W1.IsReady();
@@ -415,20 +445,27 @@ namespace MoonyLeeKicks.Insec
             {
                 //Chat.Print("wardFLashKick");
                 if (WardManager.CanCastWard)
-                    WardManager.CastWardTo(wardPlacePos.To3D());
-                else /*flash -> ally w to reach wardPos*/
+                    if (!LeeSinMenu.insecExtensionsMenu["dontFlash"].Cast<CheckBox>().CurrentValue)
+                    {
+                        WardManager.CastWardTo(wardPlacePos.To3D());
+                        return true;
+                    }
+                else /*flash -> ally w to reach wardPos*/ if (!LeeSinMenu.insecExtensionsMenu["dontFlash"].Cast<CheckBox>().CurrentValue)
+                {
                     SpellManager.Flash.Cast(wardPlacePos.To3D());
-
-                return true;
+                    return true;
+                }
             }
 
             return false;
         }
 
-        private bool moonSecActive;
         private bool CanMoonSec(AIHeroClient target)
         {
-            var wardPlacePos = ally.Position.To2D() + (target.Position.To2D() - ally.Position.To2D());
+            if (!LeeSinMenu.insecMenu["moonSec"].Cast<CheckBox>().CurrentValue)
+                return false;
+
+            var wardPlacePos = SelectionHandler.GetAllyPos + (target.Position.To2D() - SelectionHandler.GetAllyPos);
 
             var canFlash = SpellManager.FlashReady;
             var canWardJump = SpellManager.CanCastW1 && me.Mana >= minEnegeryFirstActivation &&
@@ -455,7 +492,6 @@ namespace MoonyLeeKicks.Insec
         {
             if (!me.Spellbook.GetSpell(SpellSlot.Q).Name.Contains("One"))
                 SpellManager.Q2.Cast();
-            Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
 
             #region setVars
             var target = TargetSelector.SelectedTarget;
@@ -466,6 +502,7 @@ namespace MoonyLeeKicks.Insec
                               WardManager.CanCastWard;
             var canQ = SpellManager.CanCastQ1 && me.Mana >= minEnergy;
             var wardPlacePos = WardJumpPosition.GetWardJumpPosition(SelectionHandler.GetAllyPos);
+            bool dontUseFlash = LeeSinMenu.insecExtensionsMenu["dontFlash"].Cast<CheckBox>().CurrentValue;
             #endregion setVars
 
             /*normal q cast on enemy*/
@@ -473,8 +510,16 @@ namespace MoonyLeeKicks.Insec
             if (qPred.HitChance >= HitChance.High && canQ)
                 SpellManager.Q1.Cast(qPred.CastPosition);
 
+
+            bool useFlashCorrection = LeeSinMenu.insecExtensionsMenu["useFlashCorrection"].Cast<CheckBox>().CurrentValue;
+            int correctionDist = LeeSinMenu.insecExtensionsMenu["flashCorrectionDistance"].Cast<Slider>().CurrentValue;
+            if (decidedWardKick && Player.Instance.Distance(LastWardJumpInsecPosition) <= 100 && Player.Instance.Distance(wardPlacePos) > correctionDist 
+                && useFlashCorrection)
+                decidedWardKick = false;
+
+
             /*try insec if possible*/
-            if (CanMoonSec(target) && LeeSinMenu.insecMenu["moonSec"].Cast<CheckBox>().CurrentValue)
+            if (CanMoonSec(target))
                 return;
             if (moonSecActive)
                 return;
@@ -485,6 +530,7 @@ namespace MoonyLeeKicks.Insec
                 return;
             if (CanWardFlashKick(wardPlacePos))
                 return;
+
 
             if (canQ)
             {
@@ -514,13 +560,13 @@ namespace MoonyLeeKicks.Insec
                         SpellManager.Q1.Cast(targetMinion.Position);
                     }
 
-                    if (targetMinion.Distance(wardPlacePos) <= SpellManager.Flash.Range && canFlash)
+                    if (targetMinion.Distance(wardPlacePos) <= SpellManager.Flash.Range && canFlash && !dontUseFlash)
                     {
                         SpellManager.Q1.Cast(targetMinion.Position);
                     }
                     /*q minion + wardjump + flash*/
                     if (targetMinion.Distance(wardPlacePos) > SpellManager.Flash.Range &&
-                             targetMinion.Distance(wardPlacePos) > WardManager.WardRange && canWardJump && canFlash &&
+                             targetMinion.Distance(wardPlacePos) > WardManager.WardRange && canWardJump && canFlash && !dontUseFlash &&
                              targetMinion.Distance(wardPlacePos) <= SpellManager.Flash.Range + WardManager.WardRange)
                     {
                         SpellManager.Q1.Cast(targetMinion.Position);

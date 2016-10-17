@@ -94,13 +94,16 @@ namespace MoonyLeeKicks
             insecExtensionsMenu.Add("insecToMouseSpot", new CheckBox("Enable Insec To Mouse Spot", false));
             insecExtensionsMenu.AddLabel("Click On Ground");
             insecExtensionsMenu.AddSeparator();
-
-
             insecExtensionsMenu.Add("waitForQBefore_WardFlashKick", new CheckBox("Do Not Execute Instant Insec"));
             insecExtensionsMenu.AddLabel("Wait For Using Q Before Instantly Do Ward->Flash->Kick");
             insecExtensionsMenu.AddLabel("(Doesn't Matter If The Q Hits)");
             insecExtensionsMenu.AddSeparator();
             insecExtensionsMenu.Add("WardFlashKickOnlyWithQ", new CheckBox("Only Enable Ward->Flash->Kick If the Q hit", false));
+            insecExtensionsMenu.AddSeparator();
+            insecExtensionsMenu.Add("useFlashCorrection", new CheckBox("Use Flash For Inaccurate Ward Jumps"));
+            insecExtensionsMenu.Add("flashCorrectionDistance", new Slider("Use Flash Correction If Distance Deviation Is Greater Than", 200, 100, 350));
+            insecExtensionsMenu.AddSeparator();
+            insecExtensionsMenu.Add("dontFlash", new CheckBox("Don't Use Flash At All In Insec", false));
             insecExtensionsMenu.AddSeparator();
 
             //insecExtensionsMenu.Add("correctInsecWithOtherSpells", new CheckBox("Correct Insec With Other Spells (e.g. Flash)"));
